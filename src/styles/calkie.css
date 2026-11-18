@@ -10,3 +10,25 @@
 .day-focus-edit{width:min(100%,360px);border:0;border-bottom:1px solid #405143;background:transparent;color:#b8c6b8;font:inherit;font-size:11px;padding:2px 0;outline:none}
 .exercise-name-edit{width:min(100%,280px);border:0;border-bottom:1px solid #405143;background:transparent;color:#edf4ed;font:700 12px "DM Sans",sans-serif;padding:3px 0;outline:none}
 .exercise-name-edit:focus{border-bottom-color:var(--lime)}
+
+
+/* Cal-Kie account access */
+.account-trigger{white-space:nowrap}
+.account-dialog{width:min(440px,calc(100% - 28px));border:1px solid #405343;border-radius:22px;padding:25px;background:#18221c;color:var(--text);box-shadow:0 28px 90px #0009}
+.account-dialog::backdrop{background:#050a06c9;backdrop-filter:blur(5px)}
+.account-dialog-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}
+.account-dialog-head h2{font:800 24px Manrope,sans-serif;margin:0;letter-spacing:-.8px}
+.account-close{border:1px solid #405143;background:#202d24;color:var(--text);border-radius:9px;width:34px;height:34px;font-size:22px}
+.account-intro{font-size:12px;line-height:1.6;color:#a9b9aa;margin:16px 0}
+.account-intro[data-kind="success"]{color:var(--lime)}
+.account-intro[data-kind="error"]{color:#ff9b8d}
+.account-field{display:flex;flex-direction:column;gap:7px;font-size:11px;font-weight:700;color:#dce7dc;margin:14px 0}
+.account-field input{width:100%;border:1px solid #405143;border-radius:10px;background:#111a14;color:var(--text);padding:12px;outline:none}
+.account-field input:focus{border-color:var(--lime);box-shadow:0 0 0 3px #c6f36b16}
+.account-form-actions{margin-top:18px}
+.account-form-actions .button{width:100%}
+.account-links{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px}
+.account-links button{border:0;background:none;color:var(--lime);font-size:11px;padding:4px 0}
+.account-profile-email{font-size:12px;color:var(--lime)}
+#calkie-account-session-actions{margin-top:14px}
+@media(max-width:560px){.account-trigger{padding:9px 10px;font-size:10px}.account-dialog{padding:20px}}
