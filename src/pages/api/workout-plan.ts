@@ -43,11 +43,11 @@ function buildPrompt(config:Config, weekStart:string, mode:string, dayIndex:numb
     "Use sensible sets, rep ranges and rest periods for the selected goal and level. Beginners should start conservatively. Do not prescribe maximal lifts or unsafe intensity.",
     "Rest days should have isRestDay=true, an empty exercises array and a short recovery suggestion in focus.",
     "Each exercise must have a clear searchable common name, sets (1-8), reps as a short string, restSeconds (0-300), durationMinutes (1-45), and concise form instructions.",
-    "Full week output schema: {"title":"...","days":[day,day,day,day,day,day,day]}. Day schema: "+schemaDay,
+    'Full week output schema: {\"title\":\"...\",\"days\":[day,day,day,day,day,day,day]}. Day schema: '+schemaDay,
     "User preferences: "+JSON.stringify(config),
     "Requested session duration: "+config.durationMinutes+" minutes. Requested exercises per training day: "+config.exerciseCount+". Training days: "+config.trainingDays+"."
   ];
-  if(mode==="day") rules.push("Replace only day index "+dayIndex+" in the existing plan. Preserve the week split and avoid repeating the adjacent days. Existing day: "+JSON.stringify(currentDay),"Return only {"day":"+schemaDay+"}.");
+  if(mode==="day") rules.push("Replace only day index "+dayIndex+" in the existing plan. Preserve the week split and avoid repeating the adjacent days. Existing day: "+JSON.stringify(currentDay),'Return only {\"day\":'+schemaDay+'}.');
   else rules.push("Return the complete seven-day week now.");
   if(weekStart) rules.push("Week starts on "+weekStart+".");
   return rules.join("\n\n");

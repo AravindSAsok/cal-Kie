@@ -44,7 +44,7 @@ function render() {
     const exercises = active ? day.exercises.map((exercise, exerciseIndex) => `
       <article class="exercise-card" data-exercise-card="${esc(exercise.id)}">
         <div class="exercise-main">
-          <div class="exercise-title-row"><input class="exercise-name-edit" type="text" maxlength="90" value="${esc(exercise.name)}" data-edit="name" data-day="${dayIndex}" data-exercise="${exerciseIndex}" aria-label="Edit exercise name" /><span class="exercise-tag">Exercise ${exerciseIndex+1}</span></div>
+          <div class="exercise-title-row"><span class="exercise-name">${esc(exercise.name)}</span><span class="exercise-tag">Exercise ${exerciseIndex+1}</span></div>
           <div class="exercise-controls">
             <label class="mini-field">Sets<input type="number" min="1" max="8" value="${exercise.sets}" data-edit="sets" data-day="${dayIndex}" data-exercise="${exerciseIndex}" /></label>
             <label class="mini-field reps">Reps<input type="text" maxlength="24" value="${esc(exercise.reps)}" data-edit="reps" data-day="${dayIndex}" data-exercise="${exerciseIndex}" /></label>
@@ -61,10 +61,10 @@ function render() {
     return `
       <article class="day-card">
         <header class="day-card-head">
-          <div class="day-label"><span class="day-number">${String(dayIndex+1).padStart(2,"0")}</span><div><input class="day-name-edit" type="text" maxlength="30" value="${esc(day.dayName)}" data-day-name="${dayIndex}" aria-label="Edit day name" /><div class="day-meta">${dateLabel(day.date)} · ${active ? esc(day.focus) : "Recovery day"}</div></div></div>
+          <div class="day-label"><span class="day-number">${String(dayIndex+1).padStart(2,"0")}</span><div><h3>${esc(day.dayName)}</h3><div class="day-meta">${dateLabel(day.date)} · ${active ? esc(day.focus) : "Recovery day"}</div></div></div>
           <div class="day-actions"><button class="small-button" type="button" data-regenerate-day="${dayIndex}">↻ Rebuild</button><button class="small-button" type="button" data-toggle-rest="${dayIndex}">${active ? "Make rest" : "Add workout"}</button></div>
         </header>
-        ${active ? `<div class="day-focus"><input class="day-focus-edit" type="text" maxlength="120" value="${esc(day.focus)}" data-day-focus="${dayIndex}" aria-label="Edit day focus" /><span> · approx. ${day.estimatedMinutes} min</span></div><div class="exercise-list">${exercises}</div><div class="day-footer"><span class="day-total">${day.exercises.length} exercises · ${day.exercises.reduce((s,e)=>s+e.sets,0)} total sets</span><button class="small-button" type="button" data-add-exercise="${dayIndex}">+ Add exercise</button></div>` : `<div class="rest-day"><strong>Recovery is part of the plan.</strong><p>${esc(day.focus || "Take a lighter day, walk, stretch and let your body recover.")}</p></div>`}
+        ${active ? `<p class="day-focus">${esc(day.focus)} · approx. ${day.estimatedMinutes} min</p><div class="exercise-list">${exercises}</div><div class="day-footer"><span class="day-total">${day.exercises.length} exercises · ${day.exercises.reduce((s,e)=>s+e.sets,0)} total sets</span><button class="small-button" type="button" data-add-exercise="${dayIndex}">+ Add exercise</button></div>` : `<div class="rest-day"><strong>Recovery is part of the plan.</strong><p>${esc(day.focus || "Take a lighter day, walk, stretch and let your body recover.")}</p></div>`}
       </article>`;
   }).join("");
   updateSummary();
