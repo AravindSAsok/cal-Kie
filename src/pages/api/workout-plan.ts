@@ -20,7 +20,7 @@ function validateDay(value:unknown, config:Config) {
   const dayName=typeof d.dayName==="string"?d.dayName.slice(0,30):"Workout day";
   const focus=typeof d.focus==="string"?d.focus.slice(0,120):"Full body";
   const isRestDay=d.isRestDay===true;
-  const exercises=Array.isArray(d.exercises)?d.exercises.slice(0,12).map((item,index)=>{
+  const exercises=Array.isArray(d.exercises)?d.exercises.slice(0,12).map((item)=>{
     if(!item||typeof item!=="object") throw new Error("An exercise was invalid.");
     const e=item as Record<string,unknown>;
     const name=typeof e.name==="string"?e.name.trim().slice(0,90):"";
