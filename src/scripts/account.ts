@@ -52,7 +52,7 @@ if (topbar && dialog && form && emailInput && passwordInput && confirmInput && s
       const setting = mode === "set-password";
       submit.textContent = recovery ? "Send reset link" : setting ? "Save new password" : mode === "signup" ? "Create account" : "Log in";
       toggle.hidden = setting;
-      toggle.textContent = mode === "signup" ? "Already have an account? Log in" : "New here? Create an account";
+      toggle.textContent = mode === "signup" ? "Already have an account? Log in" : mode === "recovery" ? "Back to log in" : "New here? Create an account";
       forgot.hidden = mode !== "signin";
       if (emailLabel) (emailLabel as HTMLElement).hidden = setting;
       emailInput.required = !setting;
