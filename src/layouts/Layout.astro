@@ -22,5 +22,26 @@ const {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
   </head>
-  <body><slot /></body>
+  <body>
+    <slot />
+    <dialog class="account-dialog" id="calkie-account-dialog" aria-labelledby="calkie-account-title">
+      <div class="account-dialog-head">
+        <div><p class="eyebrow">YOUR CAL-KIE ACCOUNT</p><h2 id="calkie-account-title">Your training, saved.</h2></div>
+        <button class="account-close" type="button" data-close-account aria-label="Close">×</button>
+      </div>
+      <p class="account-intro" id="calkie-account-status" role="status" aria-live="polite">Create an account or log in to sync your workout plans.</p>
+      <div id="calkie-account-profile" hidden><p class="account-profile-email" id="calkie-account-profile-email"></p></div>
+      <form id="calkie-account-form">
+        <div id="calkie-account-fields">
+          <label class="account-field">Email address<input id="calkie-account-email" type="email" autocomplete="email" required placeholder="you@example.com" /></label>
+          <label class="account-field">Password<input id="calkie-account-password" type="password" minlength="8" autocomplete="new-password" required placeholder="At least 8 characters" /></label>
+          <label class="account-field" id="calkie-account-confirm-label" hidden>Confirm new password<input id="calkie-account-confirm" type="password" minlength="8" autocomplete="new-password" /></label>
+        </div>
+        <div class="account-form-actions"><button class="button button-primary" id="calkie-account-submit" type="submit">Create account</button></div>
+      </form>
+      <div class="account-links"><button type="button" id="calkie-account-toggle">Already have an account? Log in</button><button type="button" id="calkie-account-forgot" hidden>Forgot password?</button></div>
+      <div id="calkie-account-session-actions" hidden><button class="button button-quiet" id="calkie-account-signout" type="button">Log out</button></div>
+    </dialog>
+    <script>import "../scripts/account";</script>
+  </body>
 </html>
