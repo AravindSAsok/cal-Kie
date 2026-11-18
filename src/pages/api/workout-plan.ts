@@ -1,0 +1,101 @@
+import type { APIRoute } from "astro";
+export const prerender = false;
+export const maxDuration = 60;
+
+type Provider = "openrouter" | "groq" | "gemini";
+type Config = { durationMinutes:number; exerciseCount:number; trainingDays:number; goal:string; level:string; equipment:string; focus?:string };
+const json = (body:Record<string,unknown>, status=200) => new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"}});
+function extractObject(text:string):Record<string,unknown>{
+  const cleaned=text.replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"").trim();
+  try { const value=JSON.parse(cleaned); if(value&&typeof value==="object"&&!Array.isArray(value)) return value as Record<string,unknown>; } catch {}
+  const start=cleaned.indexOf("{"), end=cleaned.lastIndexOf("}");
+  if(start<0||end<=start) throw new Error("The AI response was not valid JSON.");
+  const value=JSON.parse(cleaned.slice(start,end+1));
+  if(!value||typeof value!=="object"||Array.isArray(value)) throw new Error("The AI response had an unexpected format.");
+  return value as Record<string,unknown>;
+}
+function validateDay(value:unknown, config:Config) {
+  if(!value||typeof value!=="object") throw new Error("The AI returned an invalid workout day.");
+  const d=value as Record<string,unknown>;
+  const dayName=typeof d.dayName==="string"?d.dayName.slice(0,30):"Workout day";
+  const focus=typeof d.focus==="string"?d.focus.slice(0,120):"Full body";
+  const isRestDay=d.isRestDay===true;
+  const exercises=Array.isArray(d.exercises)?d.exercises.slice(0,12).map((item,index)=>{
+    if(!item||typeof item!=="object") throw new Error("An exercise was invalid.");
+    const e=item as Record<string,unknown>;
+    const name=typeof e.name==="string"?e.name.trim().slice(0,90):"";
+    if(!name) throw new Error("An exercise was missing its name.");
+    const number=(v:unknown,min:number,max:number,fallback:number)=>Math.max(min,Math.min(max,Math.round(Number(v)||fallback)));
+    return {id:crypto.randomUUID(),name,sets:number(e.sets,1,8,3),reps:typeof e.reps==="string"?e.reps.slice(0,24):"10-12",restSeconds:number(e.restSeconds,0,300,60),durationMinutes:number(e.durationMinutes,1,45,Math.max(3,Math.floor(config.durationMinutes/config.exerciseCount))),instructions:typeof e.instructions==="string"?e.instructions.slice(0,400):"Use controlled movement and a comfortable range."};
+  }):[];
+  if(!isRestDay && exercises.length<2) throw new Error("The AI returned too few exercises for an active day.");
+  return {dayName,focus,isRestDay,estimatedMinutes:Math.max(0,Math.min(180,Number(d.estimatedMinutes)||config.durationMinutes)),exercises:isRestDay?[]:exercises};
+}
+function buildPrompt(config:Config, weekStart:string, mode:string, dayIndex:number, currentDay:unknown) {
+  const schemaDay='{"dayName":"Monday","focus":"Upper body strength","isRestDay":false,"estimatedMinutes":60,"exercises":[{"name":"Push-up","sets":3,"reps":"8-12","restSeconds":60,"durationMinutes":8,"instructions":"Keep a straight line from head to heels."}]}';
+  const rules=[
+    "You are Cal-Kie, a careful and practical personal workout planner. Create safe, balanced, realistic plans.",
+    "Return JSON only. Do not include markdown, commentary, citations or extra text.",
+    "The user wants a seven-day calendar. For a full week, return exactly seven days in Monday-to-Sunday order. Include exactly the requested number of training days; use active recovery/rest days for the remaining days.",
+    "On every active day, include exactly the requested exercise count. Balance muscle groups and avoid training the same muscle group hard on consecutive days.",
+    "Respect the selected experience level, goal, available equipment and personal instructions. Do not prescribe equipment the user does not have.",
+    "Include warm-up/cool-down in the estimated session duration; the exercises' durationMinutes plus rest should fit the selected duration approximately. Do not exceed the requested session length by more than 10%.",
+    "Use sensible sets, rep ranges and rest periods for the selected goal and level. Beginners should start conservatively. Do not prescribe maximal lifts or unsafe intensity.",
+    "Rest days should have isRestDay=true, an empty exercises array and a short recovery suggestion in focus.",
+    "Each exercise must have a clear searchable common name, sets (1-8), reps as a short string, restSeconds (0-300), durationMinutes (1-45), and concise form instructions.",
+    "Full week output schema: {"title":"...","days":[day,day,day,day,day,day,day]}. Day schema: "+schemaDay,
+    "User preferences: "+JSON.stringify(config),
+    "Requested session duration: "+config.durationMinutes+" minutes. Requested exercises per training day: "+config.exerciseCount+". Training days: "+config.trainingDays+"."
+  ];
+  if(mode==="day") rules.push("Replace only day index "+dayIndex+" in the existing plan. Preserve the week split and avoid repeating the adjacent days. Existing day: "+JSON.stringify(currentDay),"Return only {"day":"+schemaDay+"}.");
+  else rules.push("Return the complete seven-day week now.");
+  if(weekStart) rules.push("Week starts on "+weekStart+".");
+  return rules.join("\n\n");
+}
+async function callOpenAI(provider:"openrouter"|"groq", key:string, model:string, prompt:string) {
+  const endpoint=provider==="groq"?"https://api.groq.com/openai/v1/chat/completions":"https://openrouter.ai/api/v1/chat/completions";
+  const response=await fetch(endpoint,{method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json","HTTP-Referer":"https://cal-kie.vercel.app","X-Title":"Cal-Kie"},body:JSON.stringify({model,messages:[{role:"user",content:prompt}],temperature:0.45,max_tokens:6500})});
+  const body=await response.json().catch(()=>({})) as any;
+  if(!response.ok) throw new Error(body?.error?.message||"AI provider returned HTTP "+response.status);
+  const content=body?.choices?.[0]?.message?.content;
+  if(typeof content!=="string") throw new Error("AI provider returned no workout content.");
+  return content;
+}
+async function callGemini(key:string,model:string,prompt:string) {
+  const response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent?key="+encodeURIComponent(key),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.45,maxOutputTokens:6500,responseMimeType:"application/json"}})});
+  const body=await response.json().catch(()=>({})) as any;
+  if(!response.ok) throw new Error(body?.error?.message||"Gemini returned HTTP "+response.status);
+  const content=body?.candidates?.[0]?.content?.parts?.map((p:any)=>p.text||"").join("");
+  if(typeof content!=="string"||!content) throw new Error("Gemini returned no workout content.");
+  return content;
+}
+export const POST:APIRoute=async({request})=>{
+  try {
+    const input=await request.json() as {config?:Config;weekStart?:string;mode?:string;dayIndex?:number;currentDay?:unknown};
+    const c=input.config;
+    if(!c||!Number.isFinite(c.durationMinutes)||!Number.isFinite(c.exerciseCount)||!Number.isFinite(c.trainingDays)) return json({error:"Please provide valid workout preferences."},400);
+    const config:Config={durationMinutes:Math.max(10,Math.min(180,Math.round(c.durationMinutes))),exerciseCount:Math.max(2,Math.min(12,Math.round(c.exerciseCount))),trainingDays:Math.max(3,Math.min(7,Math.round(c.trainingDays))),goal:String(c.goal||"general fitness").slice(0,80),level:String(c.level||"beginner").slice(0,30),equipment:String(c.equipment||"bodyweight only").slice(0,100),focus:String(c.focus||"").slice(0,600)};
+    const providers:{provider:Provider;key:string;model:string}[]=[];
+    if(process.env.OPENROUTER_API_KEY) providers.push({provider:"openrouter",key:process.env.OPENROUTER_API_KEY,model:process.env.OPENROUTER_MODEL||"openrouter/auto"});
+    if(process.env.GROQ_API_KEY) providers.push({provider:"groq",key:process.env.GROQ_API_KEY,model:process.env.GROQ_MODEL||"llama-3.3-70b-versatile"});
+    if(process.env.GEMINI_API_KEY) providers.push({provider:"gemini",key:process.env.GEMINI_API_KEY,model:process.env.GEMINI_MODEL||"gemini-2.5-flash"});
+    if(!providers.length) return json({error:"AI workout generation is not configured yet. Add OPENROUTER_API_KEY, GROQ_API_KEY or GEMINI_API_KEY in Vercel Environment Variables, then redeploy."},503);
+    const mode=input.mode==="day"?"day":"week";
+    const prompt=buildPrompt(config,typeof input.weekStart==="string"?input.weekStart:"",mode,Math.max(0,Math.min(6,Number(input.dayIndex)||0)),input.currentDay);
+    const failures:string[]=[];
+    for(const provider of providers) {
+      try {
+        const text=provider.provider==="gemini"?await callGemini(provider.key,provider.model,prompt):await callOpenAI(provider.provider,provider.key,provider.model,prompt);
+        const parsed=extractObject(text);
+        if(mode==="day") return json({day:validateDay(parsed.day,config),provider:provider.provider,model:provider.model});
+        if(!Array.isArray(parsed.days)||parsed.days.length!==7) throw new Error("AI must return exactly seven days.");
+        const start=input.weekStart||new Date().toISOString().slice(0,10);
+        const days=parsed.days.map((day,index)=>({...validateDay(day,config),date:new Date(new Date(start+"T12:00:00").getTime()+index*86400000).toISOString().slice(0,10)}));
+        if(days.filter(d=>!d.isRestDay).length!==config.trainingDays) throw new Error("AI did not follow the requested number of training days.");
+        if(days.some(d=>!d.isRestDay&&d.exercises.length!==config.exerciseCount)) throw new Error("AI did not follow the requested exercise count.");
+        return json({plan:{title:typeof parsed.title==="string"?parsed.title.slice(0,80):"Your Cal-Kie training week",weekStart:start,durationMinutes:config.durationMinutes,exerciseCount:config.exerciseCount,trainingDays:config.trainingDays,goal:config.goal,level:config.level,equipment:config.equipment,days},provider:provider.provider,model:provider.model});
+      } catch(error) { failures.push(provider.provider+": "+(error instanceof Error?error.message:"request failed")); }
+    }
+    return json({error:"Workout generation failed. "+failures.join(" · ").slice(0,700)},502);
+  } catch(error) { return json({error:error instanceof Error?error.message:"Could not generate a workout plan."},400); }
+};

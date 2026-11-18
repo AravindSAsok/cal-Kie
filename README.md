@@ -1,213 +1,88 @@
-# TrackCake
+# Cal-Kie
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/AravindSAsok/tracKcake/main/public/favicon.svg" width="88" alt="TrackCake logo" />
-</p>
+**Your week. Your kind of strong.** Cal-Kie is a personalised workout planner built from the TrackCake application foundation. It focuses on AI-generated weekly training schedules, editable workout sessions and on-demand exercise demonstrations.
 
-<h3 align="center">A thoughtful food diary with AI-assisted nutrition tracking.</h3>
+## First MVP
 
-<p align="center">
-  <a href="https://trackcake.vercel.app"><strong>Open the live app</strong></a>
-  · <a href="https://github.com/AravindSAsok/tracKcake/issues">Report an issue</a>
-</p>
+- Generate a Monday-to-Sunday workout plan with AI.
+- Choose session length (10–180 minutes), exercises per training day, training days per week, goal, experience level and equipment.
+- Receive exercise names, sets, reps, rest periods, duration estimates and form instructions.
+- Regenerate the full week or one day.
+- Edit sets, reps, rest and duration; remove or add exercises; turn days into recovery days.
+- Save the plan locally or to the shared Supabase project when cloud configuration and guest auth are enabled.
+- Request an exercise GIF only when needed. Cal-Kie fetches the GIF URL from ExerciseDB at runtime and does not upload or save GIFs to Supabase, the repository or application storage.
 
-<p align="center">
-  <img alt="Astro" src="https://img.shields.io/badge/Astro-5.x-BC52EE?logo=astro&logoColor=white" />
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white" />
-  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Auth%20%7C%20Postgres-3FCF8E?logo=supabase&logoColor=white" />
-  <img alt="Vercel" src="https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel&logoColor=white" />
-</p>
+AI generation requires at least one server-side provider key: `OPENROUTER_API_KEY`, `GROQ_API_KEY` or `GEMINI_API_KEY`. Add it to Vercel Environment Variables and redeploy. No provider key is committed to this repository.
 
-TrackCake makes food logging easier without hiding the details. Add meals manually, describe them in natural language, or submit a food photo for an AI-assisted estimate. Review and edit suggested foods, portions, calories, and macros before saving them to your diary.
+## Shared TrackCake / Cal-Kie database
 
-**Live app:** [trackcake.vercel.app](https://trackcake.vercel.app)
+**TrackCake and Cal-Kie use the same Supabase project and the same PostgreSQL database.** They are separate applications with different user experiences, not separate database deployments.
 
-> Nutrition values are estimates for personal tracking, not medical advice. Image recognition and portion estimation can be wrong; review every result.
+- TrackCake's existing tables, policies and applied migration history are preserved.
+- Cal-Kie adds its own namespaced feature table(s), starting with `public.workout_plans`.
+- Never create a second Supabase project for Cal-Kie unless the maintainer explicitly changes this architecture.
+- Never edit or rewrite a TrackCake migration that may already have been applied.
+- New Cal-Kie schema changes must be additive, backward-compatible migrations in `supabase/migrations/`.
+- Apply all unapplied TrackCake and Cal-Kie migrations to the shared Supabase project in one coordinated migration run. TrackCake migrations must not be applied twice; use the migration history to determine which ones are already applied.
+- Both applications must continue to use the same Supabase URL and anon/publishable key. User data is protected by table-specific Row Level Security policies.
 
-## Features
+### Apply the Cal-Kie migration
 
-- **Three food-entry workflows:** manual logging, natural-language estimates, and photo-based food recognition.
-- **Multi-provider AI:** connect Groq, Google Gemini, and OpenRouter; discover models available to configured API keys.
-- **Model selection and fallback:** select a provider/model or use automatic provider fallback.
-- **Review before saving:** AI suggestions are editable and never silently added to the diary.
-- **Food diary:** edit and delete entries, search and filter history, and review meal-level breakdowns.
-- **Daily nutrition goals:** track calories and macronutrients against a personal calorie target.
-- **Calkie assistant:** ask questions about your diary through a floating chat interface, with provider/model selection and saved conversation history.
-- **Flexible persistence:** use local browser storage or Supabase Auth and cloud-backed PostgreSQL storage.
-- **Nutrition research:** text and photo estimates share a server-side nutrition lookup that checks branded products in Open Food Facts and generic foods in USDA FoodData Central, then calculates values for the stated quantity.
-- **Optional web research:** Gemini Google Search grounding can research foods when database matches are unavailable. It is disabled by default so search usage cannot create unexpected charges.
+After the app is reviewed, run `supabase/migrations/202611180001_calkie_workout_plans.sql` in the existing TrackCake Supabase project (or apply it through the Supabase migration workflow). Do not run it against a new project. Enable Anonymous Sign-ins in Supabase Auth if Cal-Kie should save plans for guest sessions.
 
-## Screenshots
+## Exercise demonstrations and licensing
 
-A curated screenshot set is not currently committed. Add real application captures under docs/screenshots/ and link them here when available; do not use mockups that suggest features the app does not have.
+Exercise references are queried on demand from [ExerciseDB](https://oss.exercisedb.dev/docs). The application receives exercise names and remote GIF URLs, then displays the remote GIF directly. It does not download, transform, upload or persist the media. ExerciseDB's free API is described as suitable for personal projects and non-commercial prototypes, requires visible attribution, and restricts commercial/SaaS use without a paid plan. The interface credits ExerciseDB. **Before commercial or monetised use, obtain the appropriate ExerciseDB licence or replace the provider with a source whose licence permits that use.** Availability and rate limits are controlled by the external provider.
 
 ## Technology
 
-| Layer | Technology |
-| --- | --- |
-| Framework | Astro 5 |
-| Language | TypeScript |
-| Server runtime | Astro server output; Vercel adapter, with standalone Node adapter option for Render |
-| Authentication and database | Supabase Auth, PostgreSQL, Row Level Security |
-| AI providers | Groq, Google Gemini, OpenRouter |
-| Nutrition sources | Open Food Facts, USDA FoodData Central; optional Gemini Google Search grounding |
-| Hosting | Vercel |
+- Astro 5 + TypeScript
+- Supabase Auth + PostgreSQL + Row Level Security
+- OpenRouter, Groq or Gemini (server-side only)
+- ExerciseDB runtime exercise search and GIF URLs
+- Vercel deployment
 
-## Architecture
+## Local development
 
-~~~mermaid
-flowchart TD
-  U[User] --> UI[Astro diary interface]
-  UI --> M[Manual entry]
-  UI --> T[Text estimate]
-  UI --> P[Photo estimate]
-  T --> API[Server API routes]
-  P --> API
-  API --> AI[Groq / Gemini / OpenRouter]
-  API --> N[Shared nutrition research]
-  N --> OFF[Open Food Facts]
-  N --> USDA[USDA FoodData Central]
-  N -. optional .-> WEB[Gemini Google Search]
-  AI --> N
-  N --> R[Review and edit]
-  M --> DB[Local storage or Supabase]
-  R --> DB
-  DB --> D[Diary, goals and nutrition summaries]
-  D --> C[Calkie assistant]
-  C --> API
-~~~
+Requirements: Node.js 22 and npm.
 
-Provider credentials stay on the server. In cloud mode, Supabase Auth identifies the user and PostgreSQL Row Level Security scopes diary data to that user.
-
-## Run locally
-
-**Requirements:** Node.js 22 and npm.
-
-~~~bash
-git clone https://github.com/AravindSAsok/tracKcake.git
-cd tracKcake
+```bash
 npm install
 cp .env.example .env
 npm run dev
-~~~
+```
 
-Open [http://localhost:4321](http://localhost:4321).
+Open http://localhost:4321.
 
-The app can start without environment variables. Manual logging and local browser storage are available in local-only mode. Configure an AI provider for AI-assisted estimates; configure Supabase if you want cloud persistence and account-based access.
+Without an AI provider key, the planner UI and local editing work, but AI generation returns a setup message. Without Supabase variables, plans are saved in browser local storage. With Supabase configured, Cal-Kie uses the same project as TrackCake; enable Anonymous Sign-ins for guest cloud saves.
 
 ## Environment variables
 
-Add the credentials for the services you intend to use to your local .env file:
-
-~~~dotenv
+```dotenv
+OPENROUTER_API_KEY=
+OPENROUTER_MODEL=
 GROQ_API_KEY=
 GROQ_MODEL=
 GEMINI_API_KEY=
 GEMINI_MODEL=
-OPENROUTER_API_KEY=
-OPENROUTER_MODEL=
-USDA_FDC_API_KEY=
-GEMINI_WEB_SEARCH_ENABLED=false
-GEMINI_WEB_SEARCH_MODEL=gemini-3.6-flash
 PUBLIC_SUPABASE_URL=
 PUBLIC_SUPABASE_ANON_KEY=
-~~~
+```
 
-USDA_FDC_API_KEY is optional; without it, the limited public USDA DEMO_KEY is used. For production usage, create a free FoodData Central API key and add it server-side. Gemini Google Search grounding is disabled unless GEMINI_WEB_SEARCH_ENABLED=true; review Google's current grounding pricing and limits before enabling it. Never commit .env files or expose AI provider keys through PUBLIC_ variables. The Supabase URL and anon/publishable key are browser configuration and must be protected by the included Row Level Security policies. Never put a Supabase service-role key in the browser.
-
-### AI providers and model catalogue
-
-1. Create an API key with one or more supported providers.
-2. Add the corresponding server-side variable(s) to .env or your hosting environment.
-3. Restart the development server or redeploy.
-4. Use the provider selector to retrieve the model catalogue available to each configured key.
-
-The provider-status endpoint queries provider model-list APIs and returns model IDs and availability status, not secret values. Catalogues, account access, rate limits, and model availability can change. A model appearing in a catalogue does not guarantee every request will succeed.
-
-Automatic mode tries configured providers in the server-defined order and can fall back after a provider error. Selecting a specific provider keeps the request on that provider.
-
-### Supabase setup (optional)
-
-1. Create a Supabase project.
-2. Enable **Anonymous sign-ins** if guest cloud sessions are required.
-3. Run the SQL migration in supabase/migrations/ in the Supabase SQL Editor.
-4. Set PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY.
-5. Restart the app.
-
-The migration creates the food diary and tracker settings tables, indexes, grants, and user-scoped Row Level Security policies. Anonymous sessions are browser-dependent; create or sign in to a recoverable account before relying on access across devices.
+AI keys must remain server-side. Never prefix them with `PUBLIC_`, commit a real `.env` file, or expose a Supabase service-role key in browser code.
 
 ## Build and verify
 
-~~~bash
+```bash
 npm run check
 npm run build
 npm run preview
-~~~
+```
 
-| Command | Purpose |
-| --- | --- |
-| npm run dev | Start the development server |
-| npm run check | Run Astro and TypeScript diagnostics |
-| npm run build | Create the production build |
-| npm run preview | Preview the production build locally |
+## Repository
 
-## Deployment
+- Source: https://github.com/AravindSAsok/cal-Kie
+- Base application: https://github.com/AravindSAsok/tracKcake
+- Hosting: Vercel
 
-The production application uses the Astro Vercel adapter because AI features require server-side API routes.
-
-1. Import this repository into Vercel.
-2. Keep the framework preset set to Astro.
-3. Add the required AI keys and optional Supabase variables to project environment settings.
-4. Deploy and verify the production build.
-
-A standalone Node adapter option is available for Render builds using TRACKCAKE_HOST=render. Static-only hosting cannot run the server API routes needed by AI estimates and Calkie.
-
-## Project structure
-
-~~~text
-src/
-├── layouts/                  Shared page layout
-├── lib/                      Storage and Supabase integration
-├── pages/
-│   ├── index.astro           Main food diary interface
-│   └── api/
-│       ├── estimate.ts       Text-based nutrition estimation
-│       ├── food-image.ts     Image-based food recognition and estimation
-│       ├── provider-status.ts Provider/model discovery
-│       └── assistant.ts      Authenticated Calkie API
-├── scripts/
-│   ├── app.ts                Diary and food-entry interactions
-│   ├── ai-account.ts         Provider/model selector and account flows
-│   └── calkie.ts             Floating assistant interface
-└── styles/
-    └── global.css            Application styles
-supabase/
-└── migrations/               Database schema and RLS policies
-~~~
-
-## Privacy and nutrition accuracy
-
-- AI provider keys are used by server-side routes and must remain secret.
-- Supabase cloud data is protected by user-scoped Row Level Security policies.
-- Calkie requires a valid Supabase session to retrieve diary context and conversation history.
-- Food text and photos are sent to the selected AI provider for analysis. Do not submit information you do not want processed by that provider.
-- Nutrition lookup checks Open Food Facts for identified branded products and USDA FoodData Central for generic foods. Matches are best-effort and depend on accurate food identification and quantity units.
-- Optional Gemini Google Search grounding is disabled by default. If enabled, its returned source link is shown in the review popup; Google's usage limits and pricing apply.
-- When no reliable match is found, TrackCake labels the values as an AI estimate instead of presenting them as verified.
-- Food names, portions, calories, and macros generated by AI may be inaccurate. Review and correct every estimate.
-
-## Contributing
-
-Focused issues and pull requests are welcome. Read agent.md before changing authentication, storage, provider handling, or diary behavior.
-
-## Maintainer
-
-Built and maintained by **Aravind S Asok**.
-
-- Portfolio: [aravindsasok.netlify.app](https://aravindsasok.netlify.app/)
-- GitHub: [@AravindSAsok](https://github.com/AravindSAsok)
-
----
-
-<p align="center">Made with care for more mindful food tracking.</p>
-
+Cal-Kie is an early prototype. Workout suggestions are general information, not medical advice. Adjust exercises to your ability, stop if you experience pain, and seek qualified guidance when needed.
