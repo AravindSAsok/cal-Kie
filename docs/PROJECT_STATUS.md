@@ -53,3 +53,7 @@ _Last updated: 2026-11-19 after local MongoDB-only migration checks._
 ## Next priority
 
 Review the full diff and confirm no secrets or unrelated files are staged. Commit once on main and push once. Monitor Vercel. Then add the authorised MONGODB_URI to Cal-Kie Production and verify signup/login, workout save/load and two-user isolation. Never expose or commit the URI.
+
+## Latest UI improvement — 2026-11-19
+
+Sequential ExerciseDB GIF preloading is implemented in `src/scripts/workouts.ts`: unique exercises are queued in workout order, each image is decoded before the next lookup, and View GIF shares the same request. GIFs remain remote and are not persisted. Build and browser verification are pending.

@@ -65,3 +65,8 @@ Password recovery email delivery is not configured; UI reports this limitation.
 6. Test signup/login/logout, workout save/load and two-user isolation against the deployed app.
 
 Do not claim cloud authentication/persistence passed until deployed MongoDB connectivity and two-user isolation have been tested.
+
+## Latest focused UI improvement — 2026-11-19
+
+- `src/scripts/workouts.ts` queues unique exercise GIF lookups in workout order after rendering a plan. It waits for each remote image to decode before moving to the next. View GIF shares the same in-flight lookup and displays the preloaded remote URL. No GIF media is downloaded or persisted.
+- Run `npm run check` and `npm run build`, then verify in a browser after deployment.

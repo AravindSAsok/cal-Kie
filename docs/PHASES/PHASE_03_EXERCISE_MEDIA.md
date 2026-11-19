@@ -23,3 +23,11 @@ Search for exercise demonstrations only when requested and display remote Exerci
 
 ## Evidence log
 2026-11-19: local and production searches for push up returned valid ExerciseDB results. Browser loaded a remote GIF from the allowed host and displayed ExerciseDB by AscendAPI attribution. Official free V1 terms allow non-commercial use only and require AscendAPI credit; commercial/SaaS/monetised use requires a paid RapidAPI plan.
+
+## Sequential preload update — 2026-11-19
+
+- `src/scripts/workouts.ts` queues unique exercise GIF lookups in workout order after a plan renders.
+- It waits for each remote image to decode before starting the next lookup.
+- View GIF reuses the same in-flight lookup/cache, avoiding duplicate requests.
+- GIFs remain remote and are not downloaded or persisted.
+- Automated build and browser verification are pending.

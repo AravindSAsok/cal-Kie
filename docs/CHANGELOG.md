@@ -25,3 +25,9 @@ Git commits are the authoritative record of exact source changes.
 - Dependency hardening, Node 22 runtime pin and one-commit release workflow.
 
 For detailed code history, inspect https://github.com/AravindSAsok/cal-Kie/commits/main.
+
+## 2026-11-19 — Sequential exercise GIF preloading
+
+- Workout GIFs now preload one at a time in workout order after a plan renders.
+- Exercise lookup requests and image decoding are shared with button clicks, avoiding duplicate requests; a ready GIF can display immediately.
+- GIFs remain remote and are not downloaded or persisted; ExerciseDB attribution remains visible.

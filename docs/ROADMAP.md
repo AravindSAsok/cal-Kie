@@ -41,3 +41,8 @@ Keep the MVP focused. Do not expand scope until the MongoDB-only release is veri
 - [ ] Privacy, data export and account deletion requirements.
 - [ ] Provider cost/rate controls.
 - [ ] Exercise-media licensing for the intended distribution model.
+
+## Exercise media improvement — 2026-11-19
+- [x] Sequentially preload remote ExerciseDB GIFs in workout order.
+- [x] Reuse the preload request when a user clicks View GIF.
+- [ ] Verify build and browser behavior after deployment.

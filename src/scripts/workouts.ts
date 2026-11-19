@@ -17,6 +17,14 @@ let plan: WorkoutPlan | null = null;
 let currentConfig: Config | null = null;
 let toastTimer = 0;
 
+// Exercise GIFs are looked up and decoded one at a time in workout order.
+type ExerciseDemo = { name: string; gifUrl: string };
+const demoLookups = new Map<string, Promise<ExerciseDemo | null>>();
+const queuedDemoKeys = new Set<string>();
+const demoPreloadQueue: string[] = [];
+let demoPreloadRunning = false;
+const demoKey = (name: string) => name.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+
 const esc = (value: string) => value.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c] || c));
 const uid = () => globalThis.crypto?.randomUUID?.() || String(Date.now() + Math.random());
 function showToast(message: string) { toast.textContent = message; toast.classList.add("visible"); window.clearTimeout(toastTimer); toastTimer = window.setTimeout(() => toast.classList.remove("visible"), 2600); }
@@ -68,6 +76,7 @@ function render() {
       </article>`;
   }).join("");
   updateSummary();
+  queuePlanDemos();
 }
 async function requestPlan(payload: Record<string, unknown>) {
   const response = await fetch("/api/workout-plan", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) });
@@ -94,21 +103,85 @@ async function regenerateDay(dayIndex: number) {
     result.day.date = plan.days[dayIndex].date; plan.days[dayIndex] = result.day; render(); status.textContent = plan.days[dayIndex].dayName + " updated.";
   } catch (error) { status.textContent = error instanceof Error ? error.message : "Could not rebuild this day."; status.classList.add("error"); }
 }
+async function getExerciseDemo(exerciseName: string): Promise<ExerciseDemo | null> {
+  const key = demoKey(exerciseName);
+  const existing = demoLookups.get(key);
+  if (existing) return existing;
+
+  const lookup = (async () => {
+    const response = await fetch("/api/exercises?search=" + encodeURIComponent(exerciseName), { cache:"no-store" });
+    if (!response.ok) throw new Error("Exercise reference search is unavailable.");
+    const body = await response.json() as { exercises?: ExerciseDemo[] };
+    const results = body.exercises || [];
+    const match = results.find(item => demoKey(item.name) === key) || results[0];
+    if (!match) return null;
+
+    // Decode the remote GIF before marking it as ready for instant display.
+    const image = new Image();
+    image.decoding = "async";
+    image.src = match.gifUrl;
+    try { await image.decode(); }
+    catch {
+      if (!image.complete || image.naturalWidth === 0) return null;
+    }
+    return match;
+  })();
+
+  demoLookups.set(key, lookup);
+  void lookup.then(result => {
+    if (!result && demoLookups.get(key) === lookup) demoLookups.delete(key);
+  }).catch(() => {
+    if (demoLookups.get(key) === lookup) demoLookups.delete(key);
+  });
+  return lookup;
+}
+
+function queuePlanDemos() {
+  if (!plan) return;
+  for (const day of plan.days) {
+    if (day.isRestDay) continue;
+    for (const exercise of day.exercises) {
+      const key = demoKey(exercise.name);
+      if (!key || demoLookups.has(key) || queuedDemoKeys.has(key)) continue;
+      queuedDemoKeys.add(key);
+      demoPreloadQueue.push(exercise.name);
+    }
+  }
+  if (!demoPreloadRunning) void preloadNextDemo();
+}
+
+async function preloadNextDemo() {
+  if (demoPreloadRunning) return;
+  demoPreloadRunning = true;
+  try {
+    while (demoPreloadQueue.length) {
+      const exerciseName = demoPreloadQueue.shift()!;
+      const key = demoKey(exerciseName);
+      try { await getExerciseDemo(exerciseName); }
+      catch { /* A later user click can retry a failed lookup. */ }
+      finally { queuedDemoKeys.delete(key); }
+    }
+  } finally {
+    demoPreloadRunning = false;
+    if (demoPreloadQueue.length) void preloadNextDemo();
+  }
+}
+
 async function loadDemo(dayIndex:number, exerciseIndex:number) {
   if (!plan) return;
-  const exercise = plan.days[dayIndex]?.exercises[exerciseIndex]; const holder = byId<HTMLDivElement>(`demo-${dayIndex}-${exerciseIndex}`);
+  const exercise = plan.days[dayIndex]?.exercises[exerciseIndex];
+  const holder = byId<HTMLDivElement>(`demo-${dayIndex}-${exerciseIndex}`);
   if (!exercise || holder.dataset.loaded === "true") { holder.classList.toggle("visible"); return; }
-  holder.classList.add("visible"); holder.textContent = "Finding a demonstration…";
+  holder.classList.add("visible");
+  holder.textContent = "Loading demonstration…";
   try {
-    const response = await fetch("/api/exercises?search=" + encodeURIComponent(exercise.name), { cache:"no-store" });
-    const body = await response.json() as { exercises?: {name:string;gifUrl:string}[] };
-    const results = body.exercises || [];
-    const normalized = exercise.name.toLowerCase().replace(/[^a-z0-9 ]/g,"").trim();
-    const match = results.find(item => item.name.toLowerCase() === normalized) || results[0];
+    const match = await getExerciseDemo(exercise.name);
     if (!match) throw new Error("No GIF found for this exercise.");
-    holder.innerHTML = `<img src="${esc(match.gifUrl)}" alt="${esc(match.name)} demonstration" loading="lazy" referrerpolicy="no-referrer" /><div class="demo-credit">Demo: ${esc(match.name)} · ExerciseDB by AscendAPI</div>`;
+    holder.innerHTML = `<img src="${esc(match.gifUrl)}" alt="${esc(match.name)} demonstration" loading="eager" decoding="async" referrerpolicy="no-referrer" /><div class="demo-credit">Demo: ${esc(match.name)} · ExerciseDB by AscendAPI</div>`;
     holder.dataset.loaded = "true";
-  } catch (error) { holder.textContent = error instanceof Error ? error.message : "Demo unavailable right now."; }
+  } catch (error) {
+    holder.textContent = error instanceof Error ? error.message : "Demo unavailable right now.";
+  }
 }
 function handleGridClick(event: Event) {
   const target = event.target as HTMLElement;

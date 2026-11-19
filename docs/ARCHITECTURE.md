@@ -60,3 +60,7 @@ ExerciseDB is queried only when a demonstration is requested. Remote GIF URLs ar
 - Provider model variables are optional.
 
 Never use public prefixes for secrets.
+
+## Sequential exercise media preload — 2026-11-19
+
+Exercise GIFs are queued after a workout renders and processed one at a time in day/exercise order. Each remote image is decoded before the next lookup starts. A View GIF click reuses the same in-flight lookup/cache. Media remains remote and is not downloaded or stored; visible AscendAPI attribution is retained.
