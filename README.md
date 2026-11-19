@@ -2,6 +2,18 @@
 
 **Your week. Your kind of strong.** Cal-Kie is a personalised workout planner built from the TrackCake application foundation. It focuses on AI-generated weekly training schedules, editable workout sessions and on-demand exercise demonstrations.
 
+## Project continuity — read before development
+
+- Start with [AGENTS.md](./AGENTS.md) for mandatory agent instructions.
+- [Current project status](./docs/PROJECT_STATUS.md)
+- [Roadmap and phases](./docs/ROADMAP.md)
+- [Architecture](./docs/ARCHITECTURE.md)
+- [Decision log](./docs/DECISIONS.md)
+- [Latest handoff / next task](./docs/HANDOFF.md)
+- [Changelog](./docs/CHANGELOG.md)
+
+Keep these documents updated after meaningful work. Git history remains the source of truth for exact code changes.
+
 ## First MVP
 
 - Generate a Monday-to-Sunday workout plan with AI.
@@ -23,12 +35,14 @@ AI generation requires at least one server-side provider key: `OPENROUTER_API_KE
 - Never create a second Supabase project for Cal-Kie unless the maintainer explicitly changes this architecture.
 - Never edit or rewrite a TrackCake migration that may already have been applied.
 - New Cal-Kie schema changes must be additive, backward-compatible migrations in `supabase/migrations/`.
-- Apply all unapplied TrackCake and Cal-Kie migrations to the shared Supabase project in one coordinated migration run. TrackCake migrations must not be applied twice; use the migration history to determine which ones are already applied.
+- Apply migrations only after checking the shared project's migration history and current schema. Do not blindly rerun an existing SQL file.
 - Both applications must continue to use the same Supabase URL and anon/publishable key. User data is protected by table-specific Row Level Security policies.
 
-### Apply the Cal-Kie migration
+### Cal-Kie workout-plans migration
 
-After the app is reviewed, run `supabase/migrations/202611180001_calkie_workout_plans.sql` in the existing TrackCake Supabase project (or apply it through the Supabase migration workflow). Do not run it against a new project. Enable Anonymous Sign-ins in Supabase Auth if Cal-Kie should save plans for guest sessions.
+Migration file: `supabase/migrations/202611180001_calkie_workout_plans.sql`.
+
+A prior project session reported that this migration had been applied to the shared TrackCake Supabase project. That state must be confirmed against the actual migration history/schema before anyone runs SQL. **Do not run this migration blindly and do not create a new Supabase project.** If the migration is absent, coordinate a safe application through the established Supabase migration workflow. Enable Anonymous Sign-ins only if guest cloud saves are intended.
 
 ## Exercise demonstrations and licensing
 
