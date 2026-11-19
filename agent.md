@@ -1,5 +1,7 @@
 # Cal-Kie Agent Guide
 
+> Canonical entry point: read [`AGENTS.md`](./AGENTS.md) and the live project records in [`docs/`](./docs/) before starting. This file retains the original detailed product and technical guardrails; `AGENTS.md` defines the required session workflow.
+
 Read this file before changing Cal-Kie. Keep the first prototype simple, safe and usable.
 
 ## Product scope
