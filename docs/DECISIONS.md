@@ -1,30 +1,33 @@
 # Cal-Kie Decision Log
 
-Record durable decisions here. New decisions should include date, context, decision and consequences.
+## 2026-11-19 — MongoDB-only application architecture
 
-## 2026-11-19 — GitHub repository is the project continuity source of truth
-- **Context:** Work must survive chat resets and agent changes.
-- **Decision:** Keep current status, roadmap, architecture, decisions, changelog, phase evidence and next-step handoff in version-controlled Markdown.
-- **Consequence:** Agents must read AGENTS.md and the status/handoff docs at session start and update them after meaningful work.
+- Context: The maintainer explicitly confirmed that Cal-Kie must use MongoDB only.
+- Decision: MongoDB Atlas is the sole database. Use the existing hulksar database and its users and auth_sessions collections. Store workout plans in a dedicated workout_plans collection.
+- Consequence: No external database/auth provider or SQL migration dependency. All user-owned API operations must scope queries by authenticated userId. Database credentials remain server-side.
 
-## 2026-11-19 — Batch MVP verification into one release commit
-- **Context:** Every push to main triggers a Vercel deployment build; phase-by-phase pushes create unnecessary builds.
-- **Decision:** For multi-phase verification/release work, complete all local implementation, documentation and available tests on main, then create one comprehensive commit and one push. A second corrective push is allowed only if the post-push Vercel deployment fails.
-- **Consequence:** Update handoff documents during work without intermediate commits; never force-push or overwrite unrelated changes.
+## 2026-11-19 — MongoDB authentication compatibility
 
-## 2026-11-19 — Upgrade Astro stack to patched major versions
-- **Context:** npm audit found 11 vulnerabilities in the previous Astro 5 dependency tree, including one critical advisory and multiple high-severity advisories.
-- **Decision:** Upgrade to Astro 7.4.13, @astrojs/vercel 11.0.22 and @astrojs/node 11.1.14; use Node 22.23.4+ and a committed package-lock.json. Override @vercel/routing-utils path-to-regexp to patched 6.3.0.
-- **Consequence:** The application must run on Node 22.23.4 or newer within Node 22. npm audit returned 0 vulnerabilities and Astro check/build passed after the upgrade.
+- Context: The existing MongoDB account records use 32-character hex salts and 128-character hex hashes.
+- Decision: Reuse the established Node.js scrypt format, timing-safe comparison, SHA-256 session-token hashes and HttpOnly cookie sessions.
+- Consequence: Existing MongoDB users remain compatible; do not rewrite password records or session records.
 
-## Existing product/technical decisions
-- **Astro + TypeScript:** retain the existing application foundation; avoid further framework migration for the MVP.
-- **Shared Supabase:** Cal-Kie and TrackCake use the same Supabase project/database. No separate Cal-Kie project.
-- **Additive schema only:** Cal-Kie uses its own feature table(s), starting with public.workout_plans; preserve TrackCake tables and applied migration history.
-- **RLS ownership:** workout plans are user-owned and protected by auth.uid() = user_id.
-- **AI secrets:** provider API keys remain server-side.
-- **Exercise media:** fetch remote GIFs on demand; do not store or mirror them. Respect attribution/licensing.
-- **MVP scope:** workout planning, editing, regeneration, exercise reference and persistence first. No unrelated complexity without explicit approval.
+## 2026-11-19 — Local workout cache
 
-## Change control
-Do not silently reverse a decision. Add a dated entry explaining why a change is needed and identify any migration, compatibility or deployment impact.
+- Context: Workout editing should remain usable when a network or database connection is unavailable.
+- Decision: Keep a browser-local copy while MongoDB remains the signed-in cloud source of truth.
+- Consequence: Failed cloud sync must not discard the local plan.
+
+## 2026-11-19 — One-commit release batches
+
+- Context: Each push to main triggers a Vercel build.
+- Decision: Complete implementation, docs and available verification before one comprehensive commit/push. A corrective push is allowed only if the resulting deployment fails.
+- Consequence: Never force-push or overwrite unrelated work.
+
+## Existing product decisions
+
+- Keep Astro + TypeScript and avoid framework migration for the MVP.
+- Keep AI provider credentials server-side.
+- Generate seven-day plans that respect user preferences and recovery.
+- Fetch remote exercise GIFs only on demand; do not persist media.
+- Keep the MVP focused on workout planning, editing, regeneration and persistence.

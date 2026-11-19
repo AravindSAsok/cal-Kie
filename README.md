@@ -1,102 +1,83 @@
 # Cal-Kie
 
-**Your week. Your kind of strong.** Cal-Kie is a personalised workout planner built from the TrackCake application foundation. It focuses on AI-generated weekly training schedules, editable workout sessions and on-demand exercise demonstrations.
+**Your week. Your kind of strong.** Cal-Kie is a focused AI workout-week planner built with Astro and TypeScript. It generates editable Monday-to-Sunday plans and retrieves exercise demonstrations only when requested.
 
-## Project continuity — read before development
+## Project continuity
 
-- Start with [AGENTS.md](./AGENTS.md) for mandatory agent instructions.
-- [Current project status](./docs/PROJECT_STATUS.md)
-- [Roadmap and phases](./docs/ROADMAP.md)
-- [Architecture](./docs/ARCHITECTURE.md)
-- [Decision log](./docs/DECISIONS.md)
-- [Latest handoff / next task](./docs/HANDOFF.md)
-- [Changelog](./docs/CHANGELOG.md)
+Read AGENTS.md before making changes. Current status, roadmap, architecture, decisions and next steps live in docs/.
 
-Keep these documents updated after meaningful work. Git history remains the source of truth for exact code changes.
+## MVP features
 
-## First MVP
+- Generate a seven-day workout plan using OpenRouter, Groq or Gemini.
+- Configure session duration, exercise count, training days, goal, experience and equipment.
+- Review sets, reps, rest, duration and form instructions.
+- Regenerate the full week or an individual day.
+- Edit exercises, add/remove movements and change recovery days.
+- Create an account, log in and log out.
+- Save workout plans to MongoDB Atlas for the signed-in user; retain a local browser copy for offline continuity.
+- Search ExerciseDB on demand and display remote GIFs with visible attribution.
 
-- Generate a Monday-to-Sunday workout plan with AI.
-- Choose session length (10–180 minutes), exercises per training day, training days per week, goal, experience level and equipment.
-- Receive exercise names, sets, reps, rest periods, duration estimates and form instructions.
-- Regenerate the full week or one day.
-- Edit sets, reps, rest and duration; remove or add exercises; turn days into recovery days.
-- Save the plan locally or to the shared Supabase project when cloud configuration and guest auth are enabled.
-- Request an exercise GIF only when needed. Cal-Kie fetches the GIF URL from ExerciseDB at runtime and does not upload or save GIFs to Supabase, the repository or application storage.
+## Architecture
 
-AI generation requires at least one server-side provider key: `OPENROUTER_API_KEY`, `GROQ_API_KEY` or `GEMINI_API_KEY`. Add it to Vercel Environment Variables and redeploy. No provider key is committed to this repository.
+- Frontend: Astro 7 + TypeScript.
+- Database: MongoDB Atlas only. The application uses the MONGODB_URI server-side environment variable and defaults MONGODB_DB_NAME to hulksar.
+- Authentication: MongoDB-backed accounts using scrypt password hashes, hashed opaque session tokens and HttpOnly cookies.
+- AI: OpenRouter, Groq and Gemini API keys are server-side only.
+- Exercise media: remote ExerciseDB GIF URLs; no media download or persistence.
+- Hosting: Vercel.
 
-## Shared TrackCake / Cal-Kie database
-
-**TrackCake and Cal-Kie use the same Supabase project and the same PostgreSQL database.** They are separate applications with different user experiences, not separate database deployments.
-
-- TrackCake's existing tables, policies and applied migration history are preserved.
-- Cal-Kie adds its own namespaced feature table(s), starting with `public.workout_plans`.
-- Never create a second Supabase project for Cal-Kie unless the maintainer explicitly changes this architecture.
-- Never edit or rewrite a TrackCake migration that may already have been applied.
-- New Cal-Kie schema changes must be additive, backward-compatible migrations in `supabase/migrations/`.
-- Apply migrations only after checking the shared project's migration history and current schema. Do not blindly rerun an existing SQL file.
-- Both applications must continue to use the same Supabase URL and anon/publishable key. User data is protected by table-specific Row Level Security policies.
-
-### Cal-Kie workout-plans migration
-
-Migration file: `supabase/migrations/202611180001_calkie_workout_plans.sql`.
-
-The live shared-project migration history was checked on 2026-11-19 and includes version 20261118113435 named calkie_workout_plans; the public.workout_plans table, RLS policies and updated-at trigger were also verified. This does not remove the need to check migration history before future database work. **Do not run this migration blindly and do not create a new Supabase project.** Enable Anonymous Sign-ins only if guest cloud saves are intended.
-
-## Exercise demonstrations and licensing
-
-Exercise references are queried on demand from [ExerciseDB](https://oss.exercisedb.dev/docs). The application receives exercise names and remote GIF URLs, then displays the remote GIF directly. It does not download, transform, upload or persist the media. ExerciseDB V1 is provided by AscendAPI. Its free version allows personal projects, prototypes, educational tools and other non-commercial apps; commercial products, SaaS platforms or monetised use require a paid plan via RapidAPI. Visible attribution to AscendAPI is required. The interface credits ExerciseDB by AscendAPI. See the official [ExerciseDB V1 usage restrictions](https://oss.exercisedb.dev/docs). **Before commercial or monetised use, obtain the appropriate ExerciseDB licence or replace the provider with a source whose licence permits that use.** Availability and rate limits are controlled by the external provider.
-
-## Technology
-
-- Astro 7 + TypeScript
-- Supabase Auth + PostgreSQL + Row Level Security
-- OpenRouter, Groq or Gemini (server-side only)
-- ExerciseDB runtime exercise search and GIF URLs
-- Vercel deployment
+MongoDB Atlas is the only database/auth persistence backend in this application.
 
 ## Local development
 
-Requirements: Node.js 22.23.4 or newer within Node 22, and npm. `.nvmrc` pins the verified version.
+Requirements: Node.js 22.23.4 or newer within Node 22, and npm.
 
-```bash
+~~~bash
 npm ci
 cp .env.example .env
 npm run dev
-```
+~~~
 
 Open http://localhost:4321.
 
-Without an AI provider key, the planner UI and local editing work, but AI generation returns a setup message. Without Supabase variables, plans are saved in browser local storage. With Supabase configured, Cal-Kie uses the same project as TrackCake; enable Anonymous Sign-ins for guest cloud saves.
+Set MONGODB_URI and MONGODB_DB_NAME in .env for account and cloud workout persistence. Without MongoDB, the planner can still be used and workout plans remain in browser storage; account endpoints return a clear service-unavailable response. Add at least one AI provider key to enable generation.
 
 ## Environment variables
 
-```dotenv
+~~~dotenv
+MONGODB_URI=
+MONGODB_DB_NAME=hulksar
 OPENROUTER_API_KEY=
 OPENROUTER_MODEL=
 GROQ_API_KEY=
 GROQ_MODEL=
 GEMINI_API_KEY=
 GEMINI_MODEL=
-PUBLIC_SUPABASE_URL=
-PUBLIC_SUPABASE_ANON_KEY=
-```
+~~~
 
-AI keys must remain server-side. Never prefix them with `PUBLIC_`, commit a real `.env` file, or expose a Supabase service-role key in browser code.
+Never use a public prefix for database or AI credentials. Never commit .env, connection strings, credentials, tokens or user data.
 
-## Build and verify
+## MongoDB collections
 
-```bash
+- users: account identity and scrypt password credentials.
+- auth_sessions: SHA-256 hashes of opaque session tokens and expiry dates.
+- workout_plans: one saved plan per user and week, protected by userId filters.
+
+The first authenticated request creates the required indexes. The app does not run destructive migrations or drop collections.
+
+## Verification
+
+~~~bash
 npm run check
 npm run build
-npm run preview
-```
+npm audit
+~~~
 
-## Repository
+## ExerciseDB licensing
 
-- Source: https://github.com/AravindSAsok/cal-Kie
-- Base application: https://github.com/AravindSAsok/tracKcake
-- Hosting: Vercel
+Exercise references are queried on demand from https://oss.exercisedb.dev/docs. The browser displays remote GIFs directly and credits ExerciseDB by AscendAPI. The free V1 terms are for personal and other non-commercial use; commercial, SaaS or monetised use requires the appropriate paid licence. Verify the current provider terms before commercial use.
 
-Cal-Kie is an early prototype. Workout suggestions are general information, not medical advice. Adjust exercises to your ability, stop if you experience pain, and seek qualified guidance when needed.
+Cal-Kie provides general fitness suggestions, not medical advice. Adapt workouts to your ability and stop if you experience pain.
+
+Repository: https://github.com/AravindSAsok/cal-Kie
+Production: https://cal-kie.vercel.app/

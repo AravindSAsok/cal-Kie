@@ -1,55 +1,67 @@
 # Cal-Kie — Next Agent Handoff
 
-_Last updated: 2026-11-19 after local, browser, production and Supabase verification._
+_Last updated: 2026-11-19 after local MongoDB-only migration checks._
 
 ## Read first
+
 1. AGENTS.md
 2. docs/PROJECT_STATUS.md
 3. docs/ROADMAP.md
 4. docs/ARCHITECTURE.md
 5. docs/DECISIONS.md
-6. Existing agent.md
+6. agent.md
 
-## Current repository state
+## Repository
+
 - Repository: AravindSAsok/cal-Kie
 - Branch: main
-- Local working clone: D:/AI-Projects/cal-Kie
-- Remote HEAD at start of this batch: f0db4f3a77ad1b73f8d1983b2db131dcecb956f7.
-- This verification batch is consolidated into one comprehensive commit on main; no intermediate phase commits or pushes were made.
-- Resolve the exact release SHA with git rev-parse HEAD. Push that commit once, then monitor the deployment for that SHA.
-- Do not create a feature branch. The user requested one comprehensive commit/push after all verification to avoid repeated Vercel builds.
+- Local path: D:/AI-Projects/cal-Kie
+- Parent/base commit: 0cd0dcf902b14626251ab3bf533fd84d5384a615.
+- Latest release commit: use git rev-parse HEAD; verify it matches origin/main after push.
+- This migration is released as one comprehensive commit on main. Do not force-push.
 
-## Work completed locally
-- Upgraded Astro to 7.4.13, @astrojs/vercel to 11.0.22 and @astrojs/node to 11.1.14.
-- Added an override pinning @vercel/routing-utils' vulnerable path-to-regexp to 6.3.0; npm audit reported 0 vulnerabilities.
-- Added package-lock.json, .nvmrc (22.23.4), and constrained the package engine to Node 22.23.4+.
-- Fixed the client Monday-key timezone bug and made server date generation use Monday defaults and UTC calendar arithmetic; a mocked provider test verified the Monday default, seven consecutive dates and invalid-date rejection.
-- Local browser smoke passed: seven-day rendering, local save/reload, edits, add/remove, recovery-day toggle, mocked week generation, failed day/week regeneration preservation, remote GIF + attribution, mobile width and no page errors.
-- Production OpenRouter test returned a seven-day plan with 3 active days and 2 exercises per active day.
-- Production and local ExerciseDB searches passed.
-- Live shared Supabase inspection verified the Cal-Kie migration, table, RLS and ownership policies. No SQL was executed.
-- Existing Vercel deployment for remote commit f0db4f3 is READY; public homepage and ExerciseDB API returned HTTP 200.
+## Migration implemented locally
 
-## Verified commands and tests
-- Node: v22.23.4.
-- npm ci --package-lock=true: success; 370 packages installed and 371 audited, 0 vulnerabilities.
+- MongoDB connection module: src/lib/mongodb.ts.
+- Existing scrypt + session cookie contract reused in src/lib/auth.ts.
+- Signup/login/logout/me endpoints added under src/pages/api/auth/.
+- Workout persistence client now uses same-origin API requests and local fallback.
+- Workout plan GET/PUT/DELETE handlers added to src/pages/api/workout-plan.ts.
+- Account UI now talks to MongoDB-backed endpoints and collects a name for signup.
+- MongoDB collection name: workout_plans; DB default: hulksar.
+- Legacy database SDK, copied unused modules, old SQL migration files and outdated documentation removed.
+- No database records were modified during this source migration.
+
+## MongoDB evidence
+
+The connected Atlas cluster HulksarCluster in project Project 0 has database hulksar. Read-only inspection found collections users, auth_sessions, food_entries, assistant_messages, daily_tasks, daily_task_logs, tracker_settings, app_metadata and migration_state. The existing users records use 32-character hex salts and 128-character hex hashes, matching the scrypt implementation reused from ProjectHulksar. Existing unique email and session indexes were observed. No records were changed.
+
+## Verified locally
+
+- Node.js v22.23.4.
+- npm install --package-lock-only completed.
+- npm ci --package-lock=true succeeded; 369 packages audited.
 - npm audit: 0 vulnerabilities.
-- npm run check: 0 errors, 0 warnings, 1 existing unused-function hint in src/scripts/app.ts (currentMeal).
-- npm run build: success with Astro 7.4.13 and Vercel adapter 11.0.22.
+- npm run check: 0 errors, 0 warnings, 0 hints.
+- npm run build: success.
+- Local homepage: HTTP 200; account and workout UI markers present.
+- /api/auth/me without a cookie: HTTP 200 with user:null.
+- /api/auth/signup without MONGODB_URI: HTTP 503 (expected).
+- /api/workout-plan without a session: HTTP 401 (expected).
 
-## Important blockers
-- Vercel environment list currently exposes only the variable name OPENROUTER_API_KEY; no PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_ANON_KEY is configured for the app.
-- Do not add/change production environment variables without explicit user approval.
-- Because the app's Supabase public variables are missing, signup/login/password recovery and app cloud save/load cannot be tested. The live DB policy definitions are verified, but two-user RLS runtime isolation is not.
-- Groq/Gemini fallback is not tested.
-- Official ExerciseDB V1 terms allow non-commercial use only and require AscendAPI attribution; commercial/SaaS/monetised use requires a paid RapidAPI plan. Do not claim commercial readiness without it.
+## Production blocker
 
-## Exact next actions
-1. Inspect git status, the complete diff, package-lock.json, .nvmrc and all new files. Confirm no .env, keys, tokens, user data, build output or unrelated files are included.
-2. Confirm remote main has not advanced; fetch/reconcile safely if it has.
-3. Create **one comprehensive commit** on main and push it once to origin/main.
-4. Verify the pushed SHA, inspect the resulting Vercel deployment and test the new production homepage and API routes.
-5. If deployment fails, inspect logs, fix locally, rerun checks/build, then make one corrective commit/push and monitor the next deployment.
+Cal-Kie Vercel Production has MONGODB_DB_NAME=hulksar, but MONGODB_URI is not configured. The other Vercel project projecthulksar has a MongoDB variable, but the secret value was not exposed by the environment API and must not be guessed or copied from a public source. Add the authorised Atlas URI to Cal-Kie's Production environment through Vercel's secure environment settings, then redeploy. Never commit the URI.
 
-## Git rule
-No intermediate phase commits or pushes. One final comprehensive commit and push after all local work and verification; one additional corrective push is allowed only if the post-push Vercel deployment fails. Never force-push.
+Password recovery email delivery is not configured; UI reports this limitation.
+
+## Required next actions
+
+1. Review git diff, ensure no secrets or unrelated files.
+2. Confirm remote main has not advanced.
+3. Commit once and push once to origin/main.
+4. Monitor Vercel and verify deployment READY.
+5. Add MONGODB_URI to Cal-Kie Production.
+6. Test signup/login/logout, workout save/load and two-user isolation against the deployed app.
+
+Do not claim cloud authentication/persistence passed until deployed MongoDB connectivity and two-user isolation have been tested.

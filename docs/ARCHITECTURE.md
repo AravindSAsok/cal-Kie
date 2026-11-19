@@ -1,61 +1,62 @@
-# Cal-Kie Architecture Notes
+# Cal-Kie Architecture
 
-_Last inspected: 2026-11-19. This is a source-based map, not a claim that every flow has passed runtime tests._
+## Runtime
 
-## Product
-Cal-Kie is an Astro 7 + TypeScript web app for generating and editing a seven-day workout plan.
+- Astro 7 + TypeScript.
+- Vercel Node runtime, Node 22.
+- Browser UI calls same-origin Astro API routes.
+- Secrets remain in server environment variables.
 
-## Runtime and deployment
-- Astro 7.4.13, TypeScript, Node.js 22.23.4+ (Node 22 only).
-- `@astrojs/vercel` 11.0.22 and `@astrojs/node` 11.1.14; `package-lock.json` is committed for reproducible installs.
-- `path-to-regexp` is overridden to patched 6.3.0 under `@vercel/routing-utils`.
-- Vercel adapter is identified by the existing agent guide and repository README.
-- Local development: use Node `22.23.4` from `.nvmrc`, run `npm ci`, copy `.env.example` to `.env`, then `npm run dev` (default Astro port 4321).
-- Build/check scripts: `npm run check`, `npm run build`, `npm run preview`.
+## Data store
 
-## Main code paths
-| Concern | Path |
-|---|---|
-| Planner page | `src/pages/index.astro` |
-| Workout UI behavior | `src/scripts/workouts.ts` |
-| Workout plan persistence | `src/lib/workout-store.ts` |
-| AI plan API | `src/pages/api/workout-plan.ts` |
-| Exercise search API | `src/pages/api/exercises.ts` |
-| Styles | `src/styles/calkie.css` |
-| Database migrations | `supabase/migrations/` |
+MongoDB Atlas is the only database. The default database name is hulksar; override with MONGODB_DB_NAME. The URI is read only from server-side MONGODB_URI.
 
-## Calendar date handling
-- The client calculates Monday using the local calendar date and formats year/month/day directly; do not convert local midnight through toISOString(), which can shift the date in positive UTC offsets.
-- The API defaults to the current Monday and builds seven consecutive date keys using UTC calendar arithmetic.
+A cached MongoClient promise is reused across warm serverless invocations. The app creates indexes idempotently and never runs destructive migrations.
 
-## AI generation
-- Server endpoint: `POST /api/workout-plan`.
-- Providers represented in source: OpenRouter, Groq (OpenAI-compatible chat completions) and Gemini.
-- Provider credentials are server-side environment variables.
-- Config includes duration, exercise count, training days, goal, level, equipment and optional focus.
-- Endpoint constructs a structured JSON prompt and validates/normalises returned day/exercise values.
-- Verify provider defaults, fallback order, timeouts and response limits in the current source before changing provider behavior.
+### Collections
 
-## Exercise lookup
-- Server endpoint: `GET /api/exercises?search=...`.
-- Queries ExerciseDB at runtime; response is no-store.
-- Returned GIF URL is filtered to `https://static.exercisedb.dev/media/`.
-- Media must remain remote and on-demand; do not store GIFs or URLs in plans/database.
-- ExerciseDB V1 is provided by AscendAPI; free use is non-commercial only and requires visible AscendAPI attribution. Commercial/SaaS/monetised use requires a paid RapidAPI plan.
+| Collection | Purpose | Ownership |
+|---|---|---|
+| users | Account id, name, email, scrypt salt/hash, timestamps | Unique email |
+| auth_sessions | SHA-256 token hash, userId, createdAt, expiresAt | One user's sessions |
+| workout_plans | weekStart, title, plan_data, updatedAt, userId | Every query scoped to userId |
 
-## Persistence and identity
-- Browser local-storage key in source: `calkie.workout-plan.v1`.
-- Supabase table: `public.workout_plans`.
-- Store uses the public Supabase URL and anon key; it attempts anonymous sign-in when there is no session, then upserts by `user_id,week_start`.
-- Migration SQL enables RLS and defines per-user select/insert/update/delete policies using `auth.uid()`.
-- TrackCake and Cal-Kie share one Supabase project/database. Never create a second project or run migrations without checking the shared migration history.
-- Authentication UI/flows exist in the repository; inspect current auth implementation before modifying.
+Indexes:
+- users.email unique.
+- auth_sessions.tokenHash unique; expiresAt TTL; userId lookup.
+- workout_plans(userId, weekStart) unique; workout_plans(userId, updatedAt) for latest plan.
 
-## Environment variables
-See `.env.example`. Current documented variables:
-- `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`
-- `GROQ_API_KEY`, `GROQ_MODEL`
-- `GEMINI_API_KEY`, `GEMINI_MODEL`
-- `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`
+## Authentication
 
-Do not add secrets to this document. Do not use a `PUBLIC_` prefix for AI provider keys. Never expose Supabase service-role credentials in client code.
+- Signup validates name/email/password and stores a scrypt password hash with a random salt.
+- Login verifies the hash using timing-safe comparison.
+- Session tokens are random opaque values. Only SHA-256 hashes are stored in MongoDB.
+- The browser receives an HttpOnly, SameSite=Lax cookie, Secure on HTTPS.
+- Logout deletes the matching session record and expires the cookie.
+- API routes resolve the session and then scope every user-owned operation to the authenticated user's id.
+- Password recovery email delivery is not yet configured; the UI reports this limitation rather than pretending to send email.
+
+## Workout plan persistence
+
+- The browser retains a local copy for offline continuity.
+- Signed-in users load/save the latest plan through /api/workout-plan.
+- The MongoDB record is unique per userId + weekStart.
+- AI generation remains a separate POST operation; saving an edited plan uses PUT.
+- A failed cloud save leaves the local copy intact and reports the sync error.
+
+## AI providers
+
+OpenRouter, Groq and Gemini are called server-side. Provider keys are never exposed to browser code. The generation endpoint validates preferences, enforces seven days, requested active days and requested exercise count, and bounds generated fields.
+
+## Exercise media
+
+ExerciseDB is queried only when a demonstration is requested. Remote GIF URLs are displayed directly; media is not downloaded or stored. Visible attribution is required and licensing must be checked before commercial use.
+
+## Environment
+
+- MONGODB_URI — required for accounts and cloud workout persistence.
+- MONGODB_DB_NAME — optional, defaults to hulksar.
+- OPENROUTER_API_KEY, GROQ_API_KEY, GEMINI_API_KEY — optional AI providers.
+- Provider model variables are optional.
+
+Never use public prefixes for secrets.

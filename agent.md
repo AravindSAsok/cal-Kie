@@ -1,88 +1,59 @@
 # Cal-Kie Agent Guide
 
-> Canonical entry point: read [`AGENTS.md`](./AGENTS.md) and the live project records in [`docs/`](./docs/) before starting. This file retains the original detailed product and technical guardrails; `AGENTS.md` defines the required session workflow.
-
-Read this file before changing Cal-Kie. Keep the first prototype simple, safe and usable.
+Canonical instructions: read AGENTS.md and the current project records in docs/ before changing code.
 
 ## Product scope
 
-Cal-Kie is a personalised workout planner derived from the TrackCake codebase. Its current MVP is limited to:
+Cal-Kie is a focused AI workout planner:
 - AI-generated seven-day workout plans.
-- User-defined session duration and exercise count.
-- Goal, experience, training-day and equipment preferences.
-- Exercise sets, reps, rest and duration.
-- Editing exercises and regenerating a day or week.
-- On-demand remote exercise GIF demonstrations.
-- Local plan saving and optional Supabase saving.
+- User-selected session duration, exercise count, training days, goal, experience and equipment.
+- Exercise sets, reps, rest, duration and form guidance.
+- Individual-day and full-week regeneration.
+- Inline workout editing and on-demand remote GIF demonstrations.
+- MongoDB-backed account and workout-plan persistence, with local browser fallback.
 
-Do not add complicated features, analytics, social feeds, payments, nutrition tracking or extra abstractions unless explicitly requested.
+Do not add unrelated features, analytics, social feeds, payments or nutrition tracking without explicit approval.
 
-## Shared database contract — critical
+## Architecture
 
-TrackCake and Cal-Kie use the **same Supabase project and PostgreSQL database**.
-- Do not create a separate Supabase project for Cal-Kie.
-- TrackCake is already complete. Do not unnecessarily change its UI, tables, policies or behavior.
-- Cal-Kie schema additions must be additive and use Cal-Kie-specific table names, starting with `workout_plans`.
-- Do not edit existing TrackCake migrations. Treat applied migration history as immutable.
-- New migrations must be backward-compatible and committed under `supabase/migrations/`.
-- Apply unapplied TrackCake and Cal-Kie migrations together to the one shared database, checking migration history first to avoid reapplying existing TrackCake migrations.
-- Keep Row Level Security enabled. Every workout plan row must be scoped to `auth.uid() = user_id`.
-- Never use a service-role key in browser code.
+- Astro 7 + TypeScript, Node.js >=22.23.4 <23.
+- Vercel adapter for deployment.
+- MongoDB Atlas only, using server-side MONGODB_URI and optional MONGODB_DB_NAME (defaults to hulksar).
+- Accounts use the existing MongoDB users collection and scrypt password hashes.
+- Sessions use auth_sessions, SHA-256 token hashes and HttpOnly cookies.
+- Workout plans use workout_plans, scoped by authenticated userId.
+- AI provider keys remain server-side: OpenRouter, Groq and Gemini.
+- ExerciseDB is queried on demand; GIFs remain remote and are not stored.
 
-## Technology and structure
+Do not add SQL, a hosted auth provider or another database.
 
-- Astro 7 + TypeScript (Node.js >=22.23.4 <23).
-- Vercel adapter is the production adapter.
-- Supabase JS, Auth, PostgreSQL and RLS for cloud persistence.
-- AI provider keys are server-only: OpenRouter, Groq and Gemini.
-- Main page: `src/pages/index.astro`.
-- Workout UI interactions: `src/scripts/workouts.ts`.
-- Workout persistence: `src/lib/workout-store.ts`.
-- AI generation endpoint: `src/pages/api/workout-plan.ts`.
-- Exercise reference endpoint: `src/pages/api/exercises.ts`.
-- Styles: `src/styles/calkie.css`.
-- Database migrations: `supabase/migrations/`.
+## Security and data rules
+
+- Authenticate server routes with the MongoDB session cookie.
+- Scope every user-owned read/write/delete to the authenticated userId.
+- Never send database credentials, AI keys, password hashes or session tokens to the client.
+- Use scrypt and timing-safe password verification.
+- Persist only hashed session tokens; set HttpOnly, SameSite=Lax and Secure on HTTPS.
+- Do not drop collections or rewrite existing user records.
+- Create only additive indexes/collections.
+- Preserve local plan copies when MongoDB is unavailable; explain when cloud sync is not available.
 
 ## AI and workout rules
 
 - Validate and bound all input on the server.
-- Keep provider credentials server-side; never return secrets or log full prompts.
-- Respect duration, exercise count, training days, goal, level, equipment and user instructions.
-- Generate exactly seven days, with the requested number of active training days and exercises per active day.
-- Include recovery days where appropriate; do not recommend hard training of the same muscle group on consecutive days.
-- Use conservative, sensible sets/reps/rest, especially for beginners.
-- Never present AI-generated routines as medical advice.
-- Keep user edits intact unless the user explicitly regenerates the relevant day/week.
+- Respect session duration, exercise count, training days, goal, level, equipment and user focus.
+- Return exactly seven days and the requested number of active days/exercises.
+- Use sensible sets, reps and rest, especially for beginners.
+- Preserve user edits unless they explicitly regenerate a day/week.
+- Do not present workouts as medical advice.
 
-## Exercise media rules
+## Exercise media
 
-- Fetch exercise GIF references only when the user asks to view a demonstration.
-- Display remote GIF URLs directly; do not download, upload, copy into `public/`, or save media URLs into the workout plan or Supabase.
-- Use no-store responses for exercise search and allow only the known ExerciseDB media host.
-- Credit AscendAPI visibly for ExerciseDB V1.
-- ExerciseDB V1 by AscendAPI is free for personal, prototype, educational and other non-commercial use. Commercial/SaaS/monetised use requires a paid RapidAPI plan; do not enable it without the appropriate licence.
-
-## Development rules
-
-1. Read the existing code before editing.
-2. Make the smallest change that meets the request.
-3. Preserve copied TrackCake backend functionality unless Cal-Kie explicitly replaces its visible product surface.
-4. Avoid unnecessary dependencies, helpers and architecture layers.
-5. Use accessible labels, keyboard-operable controls, visible focus states and responsive layouts.
-6. Never commit secrets, local environment files or user data.
-7. Do not run destructive database changes or weaken RLS.
+- Fetch GIF references only when requested.
+- Display remote URLs; do not download, upload, mirror or persist media.
+- Keep the allowed ExerciseDB media host restriction.
+- Credit AscendAPI visibly. Confirm current licensing before commercial or monetised use.
 
 ## Verification
 
-Before release:
-- Run `npm run check`.
-- Run `npm run build`.
-- Test the planner with a configured AI key.
-- Test seven-day output, duration, exercise count and recovery days.
-- Test day regeneration and all inline edits.
-- Test missing AI key handling.
-- Test GIF search and confirm media is not persisted.
-- Test local save and Supabase save under RLS.
-- Check mobile layout and keyboard interaction.
-
-Report exactly which checks ran. Never claim a build, test, push or deployment succeeded without observing the result.
+Before release run npm ci, npm audit, npm run check and npm run build using Node 22.23.4. Also test signup/login/logout, session isolation, plan save/load, missing MongoDB configuration, AI generation, day/week regeneration, edits, exercise search, mobile layout and browser console errors. Report what actually ran.

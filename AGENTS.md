@@ -1,53 +1,62 @@
 # Cal-Kie Agent Instructions
 
-This file is the required entry point for every human or AI agent working in this repository.
+This is the mandatory entry point for every human or AI agent working in this repository.
 
-## Start here — every session
+## Start every session
+
 1. Read this file.
-2. Read `docs/PROJECT_STATUS.md`, `docs/HANDOFF.md`, `docs/ROADMAP.md`, `docs/ARCHITECTURE.md` and `docs/DECISIONS.md`.
-3. Inspect the current branch, latest commit and relevant source files. Documentation is a guide, not proof that the code or deployment still matches it.
-4. Check `docs/CHANGELOG.md` and the relevant phase record before repeating work.
-
-## Runtime version
-- Use Node.js >=22.23.4 and <23. The repository .nvmrc pins 22.23.4; use the committed package-lock.json with npm ci.
+2. Read docs/PROJECT_STATUS.md, docs/HANDOFF.md, docs/ROADMAP.md, docs/ARCHITECTURE.md and docs/DECISIONS.md.
+3. Inspect git status, branch, latest commit and the exact source files involved.
+4. Check docs/CHANGELOG.md and the relevant phase record before repeating work.
 
 ## Product scope
-Cal-Kie is a simple, personal AI workout-week planner built on the Astro application foundation. Keep the prototype focused. Do not add payments, social features, analytics, nutrition tracking, complex abstractions or unrelated features unless explicitly requested.
 
-## Critical architecture and safety rules
-- TrackCake and Cal-Kie intentionally share the same Supabase project and PostgreSQL database. Do not create another project or alter TrackCake behavior without explicit approval.
-- Cal-Kie database changes must be additive, backward-compatible and namespaced. Do not edit historical/applied migrations.
-- Check the shared project's migration history before applying migrations. Never claim a migration is applied based only on the presence of its SQL file.
-- Keep RLS enabled. Workout rows must be scoped to the authenticated user's `auth.uid()`.
-- Never expose service-role credentials or AI provider keys to browser code. Never commit real `.env` files, secrets, tokens or user data.
-- ExerciseDB GIFs are fetched on demand and displayed remotely. Do not download, upload, persist or mirror the media. Credit AscendAPI visibly for ExerciseDB V1 and respect its usage restrictions; obtain a suitable paid licence before commercial/SaaS/monetised use.
-- Preserve existing TrackCake functionality and shared database contracts.
+Cal-Kie is a simple personal AI workout-week planner. Keep the prototype focused. Do not add payments, social features, analytics, nutrition tracking, unrelated product modules or complicated abstractions unless explicitly requested.
+
+## Critical architecture rules
+
+- MongoDB Atlas is the only database. Use the existing MongoDB database hulksar and server-side MONGODB_URI configuration.
+- Do not add another database provider, hosted auth provider or SQL migrations.
+- Never expose MONGODB_URI, AI provider keys, password hashes, session tokens or reset tokens to browser code.
+- Authenticate API requests with the MongoDB-backed HttpOnly session cookie. Every user-owned query and write must include the authenticated userId.
+- Passwords use Node.js scrypt with a random salt. Store only passwordSalt and passwordHash; compare hashes with timing-safe comparison.
+- Store only SHA-256 hashes of opaque session tokens in auth_sessions; cookies must be HttpOnly, SameSite=Lax and Secure on HTTPS.
+- Use additive MongoDB collection/index changes only. Never drop collections or modify/delete user records as part of ordinary app changes.
+- Keep a local browser plan copy for offline continuity, but MongoDB is the cloud persistence source of truth for signed-in users.
+- ExerciseDB GIFs are fetched on demand and displayed remotely. Do not download, upload, persist or mirror media. Credit AscendAPI visibly and respect its licence.
 
 ## Development workflow
-1. Define the smallest task and acceptance criteria before editing.
-2. Read the exact files being changed and their callers.
-3. Make focused, incremental changes. Avoid unrelated refactors.
-4. Run relevant checks. For a release candidate, run `npm run check` and `npm run build`.
-5. Record only checks actually run and their observed outcomes.
-6. After each meaningful task/phase, update `docs/PROJECT_STATUS.md`, `docs/ROADMAP.md`, `docs/CHANGELOG.md`, the relevant `docs/PHASES/` record and `docs/HANDOFF.md`.
-7. Include the resulting commit SHA when known. Do not claim a push, deployment, database operation or end-to-end test succeeded unless verified.
 
-## Git batching and release rules
-- For a multi-phase verification/release task, work directly on `main`; do not create a feature branch or pull request.
-- Complete implementation, documentation and all available verification before committing. Do not create intermediate phase commits or pushes.
-- Review the full diff and exclude `.env`, credentials, generated secrets and unrelated files. Create one comprehensive commit and push once to `origin/main` after final checks.
-- Never force-push or overwrite unrelated work. If remote `main` advances, fetch and safely reconcile before pushing.
-- After the single push, monitor the Vercel deployment. If it fails, fix the cause, rerun checks and build, then make one corrective commit/push and monitor again.
+1. Define the smallest task and acceptance criteria.
+2. Read the exact files and callers before editing.
+3. Make focused changes; avoid unrelated rewrites.
+4. Run npm run check, npm run build and relevant tests.
+5. Record only checks actually run and observed results.
+6. Update project status, roadmap, changelog, phase evidence and handoff after meaningful work.
+7. Never claim a database operation, test, push or deployment succeeded unless verified.
 
-## Current source map
-- Main UI: `src/pages/index.astro`
-- Workout interactions: `src/scripts/workouts.ts`
-- Workout persistence: `src/lib/workout-store.ts`
-- AI generation endpoint: `src/pages/api/workout-plan.ts`
-- Exercise lookup endpoint: `src/pages/api/exercises.ts`
-- Main styles: `src/styles/calkie.css`
-- Supabase migrations: `supabase/migrations/`
-- Existing detailed project guide: `agent.md` (retain and consult; this file is the canonical session entry point)
+## Git and release rules
 
-## Required handoff format
-The handoff must state: current phase, latest verified commit, what changed, checks and results, known blockers/unknowns, exact next task, relevant files and any approvals needed. Distinguish implemented, tested, deployed and production-ready states.
+- Work directly on main for user-authorised release batches.
+- Complete implementation, docs and available verification before committing.
+- Do not create intermediate commits or pushes during a release batch.
+- Review the full diff and exclude .env, credentials, user data, generated files and unrelated changes.
+- Create one comprehensive commit and push once to origin/main.
+- Never force-push or overwrite unrelated work. Reconcile if remote main advances.
+- Monitor the Vercel deployment after pushing. If it fails, fix locally and make at most one corrective commit/push.
+
+## Source map
+
+- Main UI: src/pages/index.astro
+- Account UI: src/scripts/account.ts
+- Workout interactions: src/scripts/workouts.ts
+- MongoDB connection: src/lib/mongodb.ts
+- MongoDB authentication: src/lib/auth.ts
+- Workout persistence client: src/lib/workout-store.ts
+- Account endpoints: src/pages/api/auth/
+- Workout generation and persistence: src/pages/api/workout-plan.ts
+- Exercise lookup: src/pages/api/exercises.ts
+
+## Required handoff
+
+State current phase, latest commit, what changed, checks/results, blockers, exact next task, relevant files and approvals needed. Distinguish implemented, tested, deployed and production-ready.

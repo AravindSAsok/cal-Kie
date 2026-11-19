@@ -1,4 +1,7 @@
 import type { APIRoute } from "astro";
+import type { Document } from "mongodb";
+import { authenticateRequest } from "../../lib/server-auth";
+import { getMongoDb } from "../../lib/mongodb";
 export const prerender = false;
 export const maxDuration = 60;
 
@@ -103,4 +106,82 @@ export const POST:APIRoute=async({request})=>{
     }
     return json({error:"Workout generation failed. "+failures.join(" · ").slice(0,700)},502);
   } catch(error) { return json({error:error instanceof Error?error.message:"Could not generate a workout plan."},400); }
+};
+
+function validSavedPlan(value: unknown): value is Record<string, unknown> & { weekStart: string; days: unknown[] } {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const plan = value as Record<string, unknown>;
+  if (typeof plan.weekStart !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(plan.weekStart)) return false;
+  const date = new Date(plan.weekStart + "T00:00:00.000Z");
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== plan.weekStart) return false;
+  if (!Array.isArray(plan.days) || plan.days.length !== 7) return false;
+  if (!Number.isFinite(Number(plan.durationMinutes)) || !Number.isFinite(Number(plan.exerciseCount)) ||
+      !Number.isFinite(Number(plan.trainingDays))) return false;
+  return JSON.stringify(plan).length <= 150_000;
+}
+
+async function workoutCollection() {
+  const db = await getMongoDb();
+  const collection = db.collection("workout_plans");
+  await Promise.all([
+    collection.createIndex({ userId: 1, weekStart: 1 }, { unique: true, name: "user_workout_week_unique" }),
+    collection.createIndex({ userId: 1, updatedAt: -1 }, { name: "user_workout_updated" })
+  ]);
+  return collection;
+}
+
+export const GET: APIRoute = async ({ request }) => {
+  try {
+    const { user } = await authenticateRequest(request);
+    const collection = await workoutCollection();
+    const weekStart = new URL(request.url).searchParams.get("weekStart");
+    const filter: Document = { userId: user.id };
+    if (weekStart && /^\d{4}-\d{2}-\d{2}$/.test(weekStart)) filter.weekStart = weekStart;
+    const saved = await collection.findOne(filter, { sort: { updatedAt: -1 }, projection: { _id: 0, userId: 0 } });
+    return json({ plan: saved?.plan_data ?? null });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not load your saved workout.";
+    return json({ error: message }, /session|sign in|auth/i.test(message) ? 401 : 503);
+  }
+};
+
+export const PUT: APIRoute = async ({ request }) => {
+  let body: { plan?: unknown };
+  try { body = await request.json() as { plan?: unknown }; }
+  catch { return json({ error: "Send a valid workout plan." }, 400); }
+  if (!validSavedPlan(body.plan)) return json({ error: "The workout plan is incomplete or too large to save." }, 400);
+  try {
+    const { user } = await authenticateRequest(request);
+    const collection = await workoutCollection();
+    const plan = body.plan;
+    await collection.updateOne(
+      { userId: user.id, weekStart: plan.weekStart },
+      { $set: {
+        userId: user.id,
+        weekStart: plan.weekStart,
+        title: typeof plan.title === "string" ? plan.title.slice(0, 80) : "Your Cal-Kie training week",
+        plan_data: plan,
+        updatedAt: new Date()
+      } },
+      { upsert: true }
+    );
+    return json({ saved: true, weekStart: plan.weekStart });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not save your workout.";
+    return json({ error: message }, /session|sign in|auth/i.test(message) ? 401 : 503);
+  }
+};
+
+export const DELETE: APIRoute = async ({ request }) => {
+  const weekStart = new URL(request.url).searchParams.get("weekStart")?.trim();
+  if (!weekStart || !/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) return json({ error: "Choose a valid workout week." }, 400);
+  try {
+    const { user } = await authenticateRequest(request);
+    const collection = await workoutCollection();
+    await collection.deleteOne({ userId: user.id, weekStart });
+    return json({ deleted: true, weekStart });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not delete your saved workout.";
+    return json({ error: message }, /session|sign in|auth/i.test(message) ? 401 : 503);
+  }
 };
