@@ -31,7 +31,7 @@ TrackCake and Cal-Kie use the **same Supabase project and PostgreSQL database**.
 
 ## Technology and structure
 
-- Astro 5 + TypeScript.
+- Astro 7 + TypeScript (Node.js >=22.23.4 <23).
 - Vercel adapter is the production adapter.
 - Supabase JS, Auth, PostgreSQL and RLS for cloud persistence.
 - AI provider keys are server-only: OpenRouter, Groq and Gemini.
@@ -59,8 +59,8 @@ TrackCake and Cal-Kie use the **same Supabase project and PostgreSQL database**.
 - Fetch exercise GIF references only when the user asks to view a demonstration.
 - Display remote GIF URLs directly; do not download, upload, copy into `public/`, or save media URLs into the workout plan or Supabase.
 - Use no-store responses for exercise search and allow only the known ExerciseDB media host.
-- Show ExerciseDB attribution.
-- ExerciseDB's free endpoint is for non-commercial/personal prototype use. Do not enable commercial use without a suitable licence or a different provider.
+- Credit AscendAPI visibly for ExerciseDB V1.
+- ExerciseDB V1 by AscendAPI is free for personal, prototype, educational and other non-commercial use. Commercial/SaaS/monetised use requires a paid RapidAPI plan; do not enable it without the appropriate licence.
 
 ## Development rules
 

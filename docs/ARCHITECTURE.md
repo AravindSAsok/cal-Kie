@@ -3,12 +3,14 @@
 _Last inspected: 2026-11-19. This is a source-based map, not a claim that every flow has passed runtime tests._
 
 ## Product
-Cal-Kie is an Astro 5 + TypeScript web app for generating and editing a seven-day workout plan.
+Cal-Kie is an Astro 7 + TypeScript web app for generating and editing a seven-day workout plan.
 
 ## Runtime and deployment
-- Astro 5, TypeScript, Node 22.
+- Astro 7.4.13, TypeScript, Node.js 22.23.4+ (Node 22 only).
+- `@astrojs/vercel` 11.0.22 and `@astrojs/node` 11.1.14; `package-lock.json` is committed for reproducible installs.
+- `path-to-regexp` is overridden to patched 6.3.0 under `@vercel/routing-utils`.
 - Vercel adapter is identified by the existing agent guide and repository README.
-- Local development: `npm install`, copy `.env.example` to `.env`, then `npm run dev` (default Astro port 4321).
+- Local development: use Node `22.23.4` from `.nvmrc`, run `npm ci`, copy `.env.example` to `.env`, then `npm run dev` (default Astro port 4321).
 - Build/check scripts: `npm run check`, `npm run build`, `npm run preview`.
 
 ## Main code paths
@@ -21,6 +23,10 @@ Cal-Kie is an Astro 5 + TypeScript web app for generating and editing a seven-da
 | Exercise search API | `src/pages/api/exercises.ts` |
 | Styles | `src/styles/calkie.css` |
 | Database migrations | `supabase/migrations/` |
+
+## Calendar date handling
+- The client calculates Monday using the local calendar date and formats year/month/day directly; do not convert local midnight through toISOString(), which can shift the date in positive UTC offsets.
+- The API defaults to the current Monday and builds seven consecutive date keys using UTC calendar arithmetic.
 
 ## AI generation
 - Server endpoint: `POST /api/workout-plan`.
@@ -35,7 +41,7 @@ Cal-Kie is an Astro 5 + TypeScript web app for generating and editing a seven-da
 - Queries ExerciseDB at runtime; response is no-store.
 - Returned GIF URL is filtered to `https://static.exercisedb.dev/media/`.
 - Media must remain remote and on-demand; do not store GIFs or URLs in plans/database.
-- README documents attribution and non-commercial restrictions for the free API; re-check terms before release/commercial use.
+- ExerciseDB V1 is provided by AscendAPI; free use is non-commercial only and requires visible AscendAPI attribution. Commercial/SaaS/monetised use requires a paid RapidAPI plan.
 
 ## Persistence and identity
 - Browser local-storage key in source: `calkie.workout-plan.v1`.

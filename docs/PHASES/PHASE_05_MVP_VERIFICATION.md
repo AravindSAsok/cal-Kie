@@ -1,24 +1,43 @@
 # Phase 5 — MVP Verification and Release Gate
 
-## Scope
-Prove the implemented MVP works across build, AI generation, editing, exercise lookup, persistence, auth and responsive UI before declaring it ready.
+## Status
+**Partially verified.** Local implementation, production AI/ExerciseDB, local persistence and the shared Supabase schema/policies have evidence. App-level Supabase auth/cloud persistence and cross-user runtime RLS remain blocked by missing app environment variables.
 
-## Current status
-**Not yet executed.** This phase is the next engineering task after the documentation baseline.
+## Static and dependency verification
+- Node.js: v22.23.4.
+- Astro: 7.4.13.
+- @astrojs/vercel: 11.0.22.
+- @astrojs/node: 11.1.14.
+- path-to-regexp override: 6.3.0 under @vercel/routing-utils.
+- npm ci --package-lock=true: success; 370 packages installed, 371 audited, 0 vulnerabilities.
+- npm audit: 0 vulnerabilities.
+- npm run check: 0 errors, 0 warnings, 1 existing hint (currentMeal unused in src/scripts/app.ts).
+- npm run build: success.
 
-## Required checks
-- [ ] Install dependencies using the lockfile-compatible command.
-- [ ] Run `npm run check` and record exact output.
-- [ ] Run `npm run build` and record exact output.
-- [ ] Test AI generation with a configured provider and validate seven-day structure, training-day count, exercise count and duration.
-- [ ] Test missing-key and upstream-provider error behavior.
-- [ ] Test individual-day regeneration, full-week regeneration and inline editing.
-- [ ] Test ExerciseDB search, remote GIF rendering, attribution and non-persistence.
-- [ ] Test local save/load across refresh.
-- [ ] Verify shared Supabase migration history before any SQL; test cloud save/load and RLS isolation.
-- [ ] Test signup, login, logout and password recovery on the deployed origin.
-- [ ] Inspect mobile layout, keyboard navigation and focus states.
-- [ ] Update status, roadmap, changelog and handoff with observed results.
+## Functional verification evidence
+- Production OpenRouter request: HTTP 200; seven days; 3 active training days; 2 exercises per active day; 30-minute beginner/bodyweight plan.
+- Mocked local provider transport: API defaulted to Monday 2026-11-16, returned seven consecutive date keys through 2026-11-22, preserved 3 training days and 2 exercises per active day, and rejected 2026-02-30 with HTTP 400.
+- Local missing-provider configuration: HTTP 503 with a useful setup message.
+- ExerciseDB: valid search HTTP 200 locally and in production; invalid one-character search HTTP 400.
+- Browser smoke: localStorage save/load across refresh; edit exercise name/sets/reps/rest/duration; add/remove exercise; toggle rest day and back; mocked full-week generation; local Monday request verified; failed day/week regeneration preserves the previous week; remote GIF loaded from the allowed host; ExerciseDB attribution visible; mobile viewport has no horizontal overflow; no browser page errors.
+- Timezone bug fixed: previous toISOString().slice(0,10) returned the previous calendar date for local midnight in Asia/Kolkata. Client now formats local date components; server date generation uses UTC calendar arithmetic and Monday default.
+- Existing Vercel deployment for remote commit f0db4f3: READY. https://cal-kie.vercel.app/ returned HTTP 200; production ExerciseDB API returned HTTP 200.
 
-## Evidence log
-2026-11-19: Not run in this documentation-only session. No build, browser, provider, database or deployment checks were executed.
+## Shared Supabase verification (read-only)
+- Live migration history includes version 20261118113435, name calkie_workout_plans.
+- public.workout_plans exists; RLS is enabled.
+- SELECT policy: auth.uid() = user_id.
+- INSERT policy: WITH CHECK auth.uid() = user_id.
+- UPDATE policy: both USING and WITH CHECK bind auth.uid() = user_id.
+- DELETE policy: auth.uid() = user_id.
+- workout_plans_set_updated_at trigger and calkie_workout_set_updated_at() function exist.
+- No migration or SQL was executed in this verification pass.
+
+## Blocked / not tested
+- Vercel environment currently has OPENROUTER_API_KEY but lacks PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY.
+- App-level cloud save/load, guest auth, signup/login/logout, password recovery and two-user RLS isolation are therefore not tested.
+- Groq and Gemini fallback were not tested.
+- Official ExerciseDB V1 terms were reviewed: free use is non-commercial only and requires AscendAPI attribution; commercial/SaaS/monetised use requires a paid RapidAPI plan.
+
+## Release gate
+Do not mark Cal-Kie production-ready yet. Finish app Supabase configuration with user approval, test auth/cloud save and two-user RLS, and verify the new deployment after the final single push.

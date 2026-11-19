@@ -42,15 +42,15 @@ AI generation requires at least one server-side provider key: `OPENROUTER_API_KE
 
 Migration file: `supabase/migrations/202611180001_calkie_workout_plans.sql`.
 
-A prior project session reported that this migration had been applied to the shared TrackCake Supabase project. That state must be confirmed against the actual migration history/schema before anyone runs SQL. **Do not run this migration blindly and do not create a new Supabase project.** If the migration is absent, coordinate a safe application through the established Supabase migration workflow. Enable Anonymous Sign-ins only if guest cloud saves are intended.
+The live shared-project migration history was checked on 2026-11-19 and includes version 20261118113435 named calkie_workout_plans; the public.workout_plans table, RLS policies and updated-at trigger were also verified. This does not remove the need to check migration history before future database work. **Do not run this migration blindly and do not create a new Supabase project.** Enable Anonymous Sign-ins only if guest cloud saves are intended.
 
 ## Exercise demonstrations and licensing
 
-Exercise references are queried on demand from [ExerciseDB](https://oss.exercisedb.dev/docs). The application receives exercise names and remote GIF URLs, then displays the remote GIF directly. It does not download, transform, upload or persist the media. ExerciseDB's free API is described as suitable for personal projects and non-commercial prototypes, requires visible attribution, and restricts commercial/SaaS use without a paid plan. The interface credits ExerciseDB. **Before commercial or monetised use, obtain the appropriate ExerciseDB licence or replace the provider with a source whose licence permits that use.** Availability and rate limits are controlled by the external provider.
+Exercise references are queried on demand from [ExerciseDB](https://oss.exercisedb.dev/docs). The application receives exercise names and remote GIF URLs, then displays the remote GIF directly. It does not download, transform, upload or persist the media. ExerciseDB V1 is provided by AscendAPI. Its free version allows personal projects, prototypes, educational tools and other non-commercial apps; commercial products, SaaS platforms or monetised use require a paid plan via RapidAPI. Visible attribution to AscendAPI is required. The interface credits ExerciseDB by AscendAPI. See the official [ExerciseDB V1 usage restrictions](https://oss.exercisedb.dev/docs). **Before commercial or monetised use, obtain the appropriate ExerciseDB licence or replace the provider with a source whose licence permits that use.** Availability and rate limits are controlled by the external provider.
 
 ## Technology
 
-- Astro 5 + TypeScript
+- Astro 7 + TypeScript
 - Supabase Auth + PostgreSQL + Row Level Security
 - OpenRouter, Groq or Gemini (server-side only)
 - ExerciseDB runtime exercise search and GIF URLs
@@ -58,10 +58,10 @@ Exercise references are queried on demand from [ExerciseDB](https://oss.exercise
 
 ## Local development
 
-Requirements: Node.js 22 and npm.
+Requirements: Node.js 22.23.4 or newer within Node 22, and npm. `.nvmrc` pins the verified version.
 
 ```bash
-npm install
+npm ci
 cp .env.example .env
 npm run dev
 ```

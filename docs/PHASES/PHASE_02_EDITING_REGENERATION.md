@@ -4,19 +4,23 @@
 Edit exercises and regenerate an individual day or the full week without unexpectedly losing user changes.
 
 ## Implementation evidence
-Existing `agent.md` describes day/week regeneration and editing sets, reps, rest, duration, adding/removing exercises and changing days to recovery. Git history includes a commit titled “Restore complete inline workout editing controls”.
+- src/scripts/workouts.ts handles inline edits, adding/removing exercises, rest-day toggling, individual-day regeneration and full-week regeneration.
+- Browser smoke test ran against the local app using a seven-day fixture.
 
 ## Status
-**Reported implemented; browser acceptance tests pending.**
+**Browser smoke passed for editing and safe failure behavior. Successful real-provider UI regeneration remains untested.**
 
 ## Acceptance checks
-- [ ] Edit sets, reps, rest and duration.
-- [ ] Add/remove exercise.
-- [ ] Convert a day to recovery and back where supported.
-- [ ] Regenerate one day without changing other days.
-- [ ] Regenerate week and confirm expected overwrite behavior.
-- [ ] Loading, errors and disabled states work.
-- [ ] Mobile interaction is usable.
+- [x] Edit exercise name.
+- [x] Edit sets, reps, rest periods and duration.
+- [x] Add and remove an exercise.
+- [x] Convert a day to recovery and back.
+- [x] Mocked successful full-week generation renders seven days and sends the correct local Monday.
+- [x] Failed individual-day regeneration preserves all seven days.
+- [x] Failed full-week regeneration preserves the previous plan.
+- [x] Mobile layout has no horizontal overflow.
+- [ ] Verify successful day/week regeneration through the UI with a real provider.
+- [ ] Perform full keyboard-only accessibility review.
 
 ## Evidence log
-2026-11-19: source guide and commit history inspected; browser tests not run.
+2026-11-19: Playwright smoke passed editing, add/remove, rest-day toggling, mocked week generation and failed day/week regeneration preservation. No browser page exceptions.

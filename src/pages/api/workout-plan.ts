@@ -81,7 +81,12 @@ export const POST:APIRoute=async({request})=>{
     if(process.env.GEMINI_API_KEY) providers.push({provider:"gemini",key:process.env.GEMINI_API_KEY,model:process.env.GEMINI_MODEL||"gemini-2.5-flash"});
     if(!providers.length) return json({error:"AI workout generation is not configured yet. Add OPENROUTER_API_KEY, GROQ_API_KEY or GEMINI_API_KEY in Vercel Environment Variables, then redeploy."},503);
     const mode=input.mode==="day"?"day":"week";
-    const prompt=buildPrompt(config,typeof input.weekStart==="string"?input.weekStart:"",mode,Math.max(0,Math.min(6,Number(input.dayIndex)||0)),input.currentDay);
+    const today=new Date();
+    const currentMonday=new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),today.getUTCDate()-((today.getUTCDay()+6)%7)));
+    const weekStart=typeof input.weekStart==="string"&&input.weekStart.trim()?input.weekStart.trim():currentMonday.toISOString().slice(0,10);
+    const weekStartDate=new Date(weekStart+"T00:00:00.000Z");
+    if(mode==="week"&&(!/^\d{4}-\d{2}-\d{2}$/.test(weekStart)||Number.isNaN(weekStartDate.getTime())||weekStartDate.toISOString().slice(0,10)!==weekStart)) return json({error:"Please provide a valid week start date."},400);
+    const prompt=buildPrompt(config,weekStart,mode,Math.max(0,Math.min(6,Number(input.dayIndex)||0)),input.currentDay);
     const failures:string[]=[];
     for(const provider of providers) {
       try {
@@ -89,8 +94,8 @@ export const POST:APIRoute=async({request})=>{
         const parsed=extractObject(text);
         if(mode==="day") return json({day:validateDay(parsed.day,config),provider:provider.provider,model:provider.model});
         if(!Array.isArray(parsed.days)||parsed.days.length!==7) throw new Error("AI must return exactly seven days.");
-        const start=input.weekStart||new Date().toISOString().slice(0,10);
-        const days=parsed.days.map((day,index)=>({...validateDay(day,config),date:new Date(new Date(start+"T12:00:00").getTime()+index*86400000).toISOString().slice(0,10)}));
+        const start=weekStart;
+        const days=parsed.days.map((day,index)=>({...validateDay(day,config),date:new Date(Date.UTC(weekStartDate.getUTCFullYear(),weekStartDate.getUTCMonth(),weekStartDate.getUTCDate()+index)).toISOString().slice(0,10)}));
         if(days.filter(d=>!d.isRestDay).length!==config.trainingDays) throw new Error("AI did not follow the requested number of training days.");
         if(days.some(d=>!d.isRestDay&&d.exercises.length!==config.exerciseCount)) throw new Error("AI did not follow the requested exercise count.");
         return json({plan:{title:typeof parsed.title==="string"?parsed.title.slice(0,80):"Your Cal-Kie training week",weekStart:start,durationMinutes:config.durationMinutes,exerciseCount:config.exerciseCount,trainingDays:config.trainingDays,goal:config.goal,level:config.level,equipment:config.equipment,days},provider:provider.provider,model:provider.model});

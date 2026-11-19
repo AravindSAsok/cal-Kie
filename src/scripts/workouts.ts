@@ -26,7 +26,7 @@ function readConfig(): Config {
   const trainingDays = Math.min(7, Math.max(3, Number(byId<HTMLSelectElement>("training-days").value) || 5));
   return { durationMinutes, exerciseCount, trainingDays, goal: byId<HTMLSelectElement>("goal").value, level: byId<HTMLSelectElement>("level").value, equipment: byId<HTMLSelectElement>("equipment").value, focus: byId<HTMLTextAreaElement>("focus").value.trim() };
 }
-function mondayKey(date = new Date()) { const d = new Date(date); d.setHours(0,0,0,0); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return d.toISOString().slice(0,10); }
+function mondayKey(date = new Date()) { const d = new Date(date); d.setHours(0,0,0,0); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
 function dateLabel(value: string) { return new Date(value + "T12:00:00").toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"}); }
 function updateSummary() {
   if (!plan) return;
@@ -106,7 +106,7 @@ async function loadDemo(dayIndex:number, exerciseIndex:number) {
     const normalized = exercise.name.toLowerCase().replace(/[^a-z0-9 ]/g,"").trim();
     const match = results.find(item => item.name.toLowerCase() === normalized) || results[0];
     if (!match) throw new Error("No GIF found for this exercise.");
-    holder.innerHTML = `<img src="${esc(match.gifUrl)}" alt="${esc(match.name)} demonstration" loading="lazy" referrerpolicy="no-referrer" /><div class="demo-credit">Demo: ${esc(match.name)} · ExerciseDB</div>`;
+    holder.innerHTML = `<img src="${esc(match.gifUrl)}" alt="${esc(match.name)} demonstration" loading="lazy" referrerpolicy="no-referrer" /><div class="demo-credit">Demo: ${esc(match.name)} · ExerciseDB by AscendAPI</div>`;
     holder.dataset.loaded = "true";
   } catch (error) { holder.textContent = error instanceof Error ? error.message : "Demo unavailable right now."; }
 }

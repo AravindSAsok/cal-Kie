@@ -8,6 +8,9 @@ This file is the required entry point for every human or AI agent working in thi
 3. Inspect the current branch, latest commit and relevant source files. Documentation is a guide, not proof that the code or deployment still matches it.
 4. Check `docs/CHANGELOG.md` and the relevant phase record before repeating work.
 
+## Runtime version
+- Use Node.js >=22.23.4 and <23. The repository .nvmrc pins 22.23.4; use the committed package-lock.json with npm ci.
+
 ## Product scope
 Cal-Kie is a simple, personal AI workout-week planner built on the Astro application foundation. Keep the prototype focused. Do not add payments, social features, analytics, nutrition tracking, complex abstractions or unrelated features unless explicitly requested.
 
@@ -17,7 +20,7 @@ Cal-Kie is a simple, personal AI workout-week planner built on the Astro applica
 - Check the shared project's migration history before applying migrations. Never claim a migration is applied based only on the presence of its SQL file.
 - Keep RLS enabled. Workout rows must be scoped to the authenticated user's `auth.uid()`.
 - Never expose service-role credentials or AI provider keys to browser code. Never commit real `.env` files, secrets, tokens or user data.
-- ExerciseDB GIFs are fetched on demand and displayed remotely. Do not download, upload, persist or mirror the media. Keep attribution visible and respect provider licensing; confirm a suitable licence before commercial use.
+- ExerciseDB GIFs are fetched on demand and displayed remotely. Do not download, upload, persist or mirror the media. Credit AscendAPI visibly for ExerciseDB V1 and respect its usage restrictions; obtain a suitable paid licence before commercial/SaaS/monetised use.
 - Preserve existing TrackCake functionality and shared database contracts.
 
 ## Development workflow
@@ -28,6 +31,13 @@ Cal-Kie is a simple, personal AI workout-week planner built on the Astro applica
 5. Record only checks actually run and their observed outcomes.
 6. After each meaningful task/phase, update `docs/PROJECT_STATUS.md`, `docs/ROADMAP.md`, `docs/CHANGELOG.md`, the relevant `docs/PHASES/` record and `docs/HANDOFF.md`.
 7. Include the resulting commit SHA when known. Do not claim a push, deployment, database operation or end-to-end test succeeded unless verified.
+
+## Git batching and release rules
+- For a multi-phase verification/release task, work directly on `main`; do not create a feature branch or pull request.
+- Complete implementation, documentation and all available verification before committing. Do not create intermediate phase commits or pushes.
+- Review the full diff and exclude `.env`, credentials, generated secrets and unrelated files. Create one comprehensive commit and push once to `origin/main` after final checks.
+- Never force-push or overwrite unrelated work. If remote `main` advances, fetch and safely reconcile before pushing.
+- After the single push, monitor the Vercel deployment. If it fails, fix the cause, rerun checks and build, then make one corrective commit/push and monitor again.
 
 ## Current source map
 - Main UI: `src/pages/index.astro`

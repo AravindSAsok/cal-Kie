@@ -4,21 +4,22 @@
 Search for exercise demonstrations only when requested and display remote ExerciseDB GIFs.
 
 ## Implementation evidence
-- `src/pages/api/exercises.ts` calls ExerciseDB search at runtime.
-- The endpoint filters GIF URLs to `https://static.exercisedb.dev/media/`.
-- Responses are configured as no-store.
-- README documents attribution and non-commercial restrictions for the free API.
+- src/pages/api/exercises.ts queries ExerciseDB at runtime.
+- Returned GIF URLs are filtered to https://static.exercisedb.dev/media/.
+- Responses use Cache-Control: no-store.
+- The browser displays remote GIF URLs and visible ExerciseDB by AscendAPI attribution; no download or media persistence was observed.
 
 ## Status
-**Endpoint implemented; live/browser and licensing checks pending.**
+**Live endpoint and browser display verified. Commercial licensing remains a release constraint.**
 
 ## Acceptance checks
-- [ ] Search works for valid exercise names.
-- [ ] Empty, invalid and upstream-error states are clear.
-- [ ] GIF displays from the remote source only.
-- [ ] No GIF or GIF URL is downloaded or persisted.
-- [ ] ExerciseDB attribution is visible.
-- [ ] Current licence permits intended use.
+- [x] Valid exercise search works locally and in production (HTTP 200).
+- [x] Invalid short search returns HTTP 400.
+- [x] GIF URL is restricted to the approved ExerciseDB media host.
+- [x] GIF renders remotely in the browser.
+- [x] AscendAPI attribution is visible for ExerciseDB V1.
+- [x] No GIF files are downloaded or persisted by Cal-Kie.
+- [ ] Confirm current licence permits the intended distribution/commercial use.
 
 ## Evidence log
-2026-11-19: endpoint inspected; no live request or licensing review performed.
+2026-11-19: local and production searches for push up returned valid ExerciseDB results. Browser loaded a remote GIF from the allowed host and displayed ExerciseDB by AscendAPI attribution. Official free V1 terms allow non-commercial use only and require AscendAPI credit; commercial/SaaS/monetised use requires a paid RapidAPI plan.
