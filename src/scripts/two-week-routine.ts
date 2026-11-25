@@ -9,16 +9,20 @@ const content=document.getElementById("routine-content") as HTMLDivElement|null;
 type ExerciseGif={name:string;gifUrl:string};
 if(root&&week&&day&&content){
  const weekControl=week!,dayControl=day!,contentRoot=content!;
- const cache=new Map<string,Promise<ExerciseGif|null>>();let current=0;
+ const cache=new Map<string,{promise:Promise<ExerciseGif|null>;expiresAt:number}>();let current=0;
+ const cacheTtlMs=55*60*1000;
  const key=(v:string)=>v.toLowerCase().replace(/[^a-z0-9 ]/g,"").trim();
  const escapes:Record<string,string>={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"};
  const esc=(v:string)=>v.replace(/[&<>"']/g,c=>escapes[c]||c);
  async function gif(name:string,refresh=false):Promise<ExerciseGif|null>{
-  const k=key(name);if(!refresh&&cache.has(k))return cache.get(k)!;
+  const k=key(name),existing=cache.get(k);
+  if(!refresh&&existing&&existing.expiresAt>Date.now())return existing.promise;
+  if(existing)cache.delete(k);
   const request=fetch("/api/exercises?search="+encodeURIComponent(name)+(refresh?"&refresh=1":""),{credentials:"same-origin"})
    .then(async r=>{if(!r.ok)throw Error("GIF search is unavailable.");return r.json();})
    .then((b:{exercises?:ExerciseGif[]})=>(b.exercises||[]).find(x=>key(x.name)===k)||(b.exercises||[])[0]||null);
-  cache.set(k,request);try{return await request;}catch(e){cache.delete(k);throw e;}
+  cache.set(k,{promise:request,expiresAt:Date.now()+cacheTtlMs});
+  try{return await request;}catch(e){cache.delete(k);throw e;}
  }
  function render(){
   const d=routine[current];weekControl.value=String(d.week);dayControl.value=String(current%7);
@@ -62,10 +66,10 @@ if(root&&week&&day&&content){
   if(choice){
    const h=choice.closest<HTMLElement>(".routine-gif");if(!h)return;const choices=JSON.parse(h.dataset.choices||"[]") as ExerciseGif[],m=choices[Number(choice.dataset.choice)];if(!m)return;
    choice.disabled=true;
-   try{
-    const r=await fetch("/api/exercises",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({search:h.dataset.exercise,gifUrl:m.gifUrl})});if(!r.ok)throw Error("Sign in to save a replacement GIF.");
-    cache.set(key(h.dataset.exercise||""),Promise.resolve(m));h.innerHTML='<img src="'+esc(m.gifUrl)+'" alt="'+esc(m.name)+' exercise demonstration"><small>Saved replacement · ExerciseDB by AscendAPI</small>';h.dataset.ready="true";
-   }catch(e){h.innerHTML='<p class="gif-error">'+esc(e instanceof Error?e.message:"Could not save this GIF.")+'</p>';}
+   const k=key(h.dataset.exercise||"");
+   cache.set(k,{promise:Promise.resolve(m),expiresAt:Date.now()+cacheTtlMs});
+   h.innerHTML='<img src="'+esc(m.gifUrl)+'" alt="'+esc(m.name)+' exercise demonstration"><small>Selected for this session · ExerciseDB by AscendAPI</small>';
+   h.dataset.ready="true";
   }
  });
  const saved=Number(localStorage.getItem("calkie.routine.day"));current=Number.isInteger(saved)&&saved>=0&&saved<14?saved:0;render();

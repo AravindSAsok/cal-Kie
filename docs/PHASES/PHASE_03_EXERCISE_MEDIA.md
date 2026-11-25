@@ -6,8 +6,11 @@ Search for exercise demonstrations only when requested and display remote Exerci
 ## Implementation evidence
 - src/pages/api/exercises.ts queries ExerciseDB at runtime.
 - Returned GIF URLs are filtered to https://static.exercisedb.dev/media/.
-- Responses use Cache-Control: no-store.
-- The browser displays remote GIF URLs and visible ExerciseDB by AscendAPI attribution; no download or media persistence was observed.
+- Search-result metadata is cached in bounded server memory and page memory for 55 minutes only.
+- Successful search responses use private browser caching for no more than one hour; refresh requests bypass the app cache.
+- The browser displays remote GIF URLs and visible ExerciseDB by AscendAPI attribution; GIF binaries are never downloaded or persisted.
+- Choosing an alternative updates the current page/session only; no MongoDB or browser-storage write occurs.
+- The previous MongoDB `exercise_media` metadata cache and POST persistence endpoint have been removed.
 
 ## Status
 **Live endpoint and browser display verified. Commercial licensing remains a release constraint.**
@@ -18,7 +21,9 @@ Search for exercise demonstrations only when requested and display remote Exerci
 - [x] GIF URL is restricted to the approved ExerciseDB media host.
 - [x] GIF renders remotely in the browser.
 - [x] AscendAPI attribution is visible for ExerciseDB V1.
-- [x] No GIF files are downloaded or persisted by Cal-Kie.
+- [x] No GIF files or API-derived exercise metadata are persistently stored by Cal-Kie.
+- [x] Server and page caches expire within 55 minutes; browser HTTP cache is capped at one hour.
+- [x] Alternative selection is session-only and does not write to MongoDB or browser storage.
 - [ ] Confirm current licence permits the intended distribution/commercial use.
 
 ## Evidence log
@@ -31,3 +36,8 @@ Search for exercise demonstrations only when requested and display remote Exerci
 - View GIF reuses the same in-flight lookup/cache, avoiding duplicate requests.
 - GIFs remain remote and are not downloaded or persisted.
 - Automated build and browser verification are pending.
+
+
+## Cache compliance update — 2026-11-25
+
+The free ExerciseDB API's temporary-cache restriction is handled by short-lived, non-persistent caches only. Server cache entries expire after 55 minutes and are bounded to 200 searches. The browser's page-memory cache also expires after 55 minutes, while API search responses are privately cacheable for at most one hour. The application does not store the GIF binary, search metadata, or replacement choice in MongoDB, localStorage, IndexedDB, Cache Storage, or a service worker. The GIF itself continues to load directly from the provider's media host.

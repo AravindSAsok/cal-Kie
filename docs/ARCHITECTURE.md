@@ -50,7 +50,7 @@ OpenRouter, Groq and Gemini are called server-side. Provider keys are never expo
 
 ## Exercise media
 
-ExerciseDB is queried only when a demonstration is requested. Remote GIF URLs are displayed directly; media is not downloaded or stored. Visible attribution is required and licensing must be checked before commercial use.
+ExerciseDB is queried when a demonstration or alternative is requested. Search results are held only in bounded server-process memory and the active browser page for less than one hour; API responses use private browser caching with a one-hour maximum. ExerciseDB GIF binaries are never downloaded, proxied, or persisted by Cal-Kie. The browser displays the provider's remote GIF URL and retains visible attribution. Choosing an alternative changes the current page/session selection only; it is not saved to MongoDB or browser storage.
 
 ## Environment
 
@@ -60,6 +60,15 @@ ExerciseDB is queried only when a demonstration is requested. Remote GIF URLs ar
 - Provider model variables are optional.
 
 Never use public prefixes for secrets.
+
+## Exercise media cache compliance — 2026-11-25
+
+- Removed the MongoDB `exercise_media` collection read/write path.
+- Server search-result cache is in-memory only, bounded to 200 queries, and expires after 55 minutes.
+- Browser page cache also expires after 55 minutes; it is not written to localStorage, IndexedDB, Cache Storage, or a service worker.
+- Successful search responses allow private browser caching for at most one hour; refresh requests bypass the in-app cache.
+- Alternative GIF selection applies to the current page/session only. No API-derived media or metadata is persistently stored.
+- Actual GIF bytes continue to load from the provider's remote media host; Cal-Kie does not proxy or persist them.
 
 ## Sequential exercise media preload — 2026-11-19
 

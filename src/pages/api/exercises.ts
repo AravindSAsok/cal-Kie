@@ -1,2 +1,82 @@
-import type { APIRoute } from "astro";import {getMongoDb} from "../../lib/mongodb";import {authenticateRequest} from "../../lib/auth";export const prerender=false;const json=(b:Record<string,unknown>,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"}});const allowed=(v:string)=>{try{const u=new URL(v);return u.protocol==="https:"&&u.hostname==="static.exercisedb.dev"&&u.pathname.startsWith("/media/");}catch{return false;}};const norm=(s:string)=>s.toLowerCase().replace(/[^a-z0-9 ]/g,"").trim();async function search(q:string){const r=await fetch("https://oss.exercisedb.dev/api/v1/exercises/search?search="+encodeURIComponent(q),{headers:{Accept:"application/json"},cache:"no-store"});if(!r.ok)throw Error("Exercise reference search unavailable.");const b=await r.json() as {data?:Array<{name?:string;gifUrl?:string}>};return (Array.isArray(b.data)?b.data:[]).filter(x=>typeof x.name==="string"&&typeof x.gifUrl==="string"&&allowed(x.gifUrl)).slice(0,8).map(x=>({name:x.name!,gifUrl:x.gifUrl!}));}export const GET:APIRoute=async({url})=>{const q=(url.searchParams.get("search")||"").trim().slice(0,80);if(q.length<2)return json({error:"Enter an exercise name."},400);const key=norm(q);let db:null|Awaited<ReturnType<typeof getMongoDb>>=null;try{db=await getMongoDb();if(url.searchParams.get("refresh")!=="1"){const c=await db.collection("exercise_media").findOne({key});if(c&&allowed(String(c.gifUrl)))return json({exercises:[{name:c.name,gifUrl:c.gifUrl}],cached:true});}}catch{/* Exercise lookup must still work if MongoDB is temporarily unavailable. */}try{const exercises=await search(q);if(!exercises.length)return json({exercises:[]});const chosen=exercises.find(x=>norm(x.name)===key)||exercises[0];if(db)await db.collection("exercise_media").updateOne({key},{$set:{key,name:chosen.name,gifUrl:chosen.gifUrl,source:"ExerciseDB by AscendAPI",updatedAt:new Date()}},{upsert:true});return json({exercises,cached:false});}catch{return json({error:"Could not load exercise demonstrations."},502);}};
-export const POST:APIRoute=async({request})=>{try{const {db}=await authenticateRequest(request);const b=await request.json() as {search?:string;gifUrl?:string},q=(b.search||"").trim().slice(0,80),url=b.gifUrl||"";if(q.length<2||!allowed(url))return json({error:"Invalid GIF selection."},400);const chosen=(await search(q)).find(x=>x.gifUrl===url);if(!chosen)return json({error:"GIF is not a valid search result."},400);const key=norm(q);await db.collection("exercise_media").updateOne({key},{$set:{key,name:chosen.name,gifUrl:chosen.gifUrl,source:"ExerciseDB by AscendAPI",updatedAt:new Date()}},{upsert:true});return json({saved:true,exercise:chosen});}catch(e){const m=e instanceof Error?e.message:"Could not save GIF.";return json({error:m},m.startsWith("Sign in")?401:503);}};
+import type { APIRoute } from "astro";
+
+export const prerender = false;
+
+type ExerciseGif = { name: string; gifUrl: string };
+type CacheEntry = { expiresAt: number; exercises: ExerciseGif[] };
+
+const CACHE_TTL_MS = 55 * 60 * 1000;
+const MAX_CACHE_ENTRIES = 200;
+const exerciseCache = new Map<string, CacheEntry>();
+
+const json = (body: Record<string, unknown>, status = 200, cacheSeconds = 0) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": cacheSeconds > 0 ? `private, max-age=${cacheSeconds}, must-revalidate` : "no-store"
+    }
+  });
+
+const allowed = (value: string) => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname === "static.exercisedb.dev" && url.pathname.startsWith("/media/");
+  } catch {
+    return false;
+  }
+};
+
+const norm = (value: string) => value.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+
+function getCached(key: string): ExerciseGif[] | null {
+  const entry = exerciseCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    exerciseCache.delete(key);
+    return null;
+  }
+  return entry.exercises;
+}
+
+function setCached(key: string, exercises: ExerciseGif[]) {
+  if (exerciseCache.size >= MAX_CACHE_ENTRIES) {
+    const oldestKey = exerciseCache.keys().next().value;
+    if (oldestKey) exerciseCache.delete(oldestKey);
+  }
+  exerciseCache.set(key, { exercises, expiresAt: Date.now() + CACHE_TTL_MS });
+}
+
+async function search(query: string): Promise<ExerciseGif[]> {
+  const response = await fetch(
+    "https://oss.exercisedb.dev/api/v1/exercises/search?search=" + encodeURIComponent(query),
+    { headers: { Accept: "application/json" }, cache: "no-store" }
+  );
+  if (!response.ok) throw new Error("Exercise reference search unavailable.");
+  const body = await response.json() as { data?: Array<{ name?: string; gifUrl?: string }> };
+  return (Array.isArray(body.data) ? body.data : [])
+    .filter((item) => typeof item.name === "string" && typeof item.gifUrl === "string" && allowed(item.gifUrl))
+    .slice(0, 8)
+    .map((item) => ({ name: item.name!, gifUrl: item.gifUrl! }));
+}
+
+export const GET: APIRoute = async ({ url }) => {
+  const query = (url.searchParams.get("search") || "").trim().slice(0, 80);
+  if (query.length < 2) return json({ error: "Enter an exercise name." }, 400);
+
+  const key = norm(query);
+  const refresh = url.searchParams.get("refresh") === "1";
+  if (!refresh) {
+    const cached = getCached(key);
+    if (cached) return json({ exercises: cached, cached: true }, 200, 3600);
+  }
+
+  try {
+    const exercises = await search(query);
+    if (!exercises.length) return json({ exercises: [], cached: false }, 200, 300);
+    setCached(key, exercises);
+    return json({ exercises, cached: false }, 200, 3600);
+  } catch {
+    return json({ error: "Could not load exercise demonstrations." }, 502);
+  }
+};
