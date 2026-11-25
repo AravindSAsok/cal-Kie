@@ -19,6 +19,7 @@ _Last updated: 2026-11-25 after workout-builder navigation update._
 - Session length, exercise count, training days, goal, level and equipment preferences.
 - Day/week regeneration and inline editing.
 - ExerciseDB on-demand lookup, remote GIF display and attribution.
+- User-owned exercise demos: paste HTTPS image/GIF URL or upload GIF/PNG/JPG/WEBP (up to 4 MB), saved per account in MongoDB and preferred over ExerciseDB.
 - MongoDB connection module using MONGODB_URI and MONGODB_DB_NAME (defaults to hulksar).
 - Compatible scrypt password hashing and hashed opaque session cookie authentication.
 - MongoDB-backed signup, login, logout and current-session endpoints.
@@ -64,3 +65,14 @@ Review the full diff and confirm no secrets or unrelated files are staged. Commi
 ## Latest UI improvement — 2026-11-19
 
 Sequential ExerciseDB GIF preloading is implemented in `src/scripts/workouts.ts`: unique exercises are queued in workout order, each image is decoded before the next lookup, and View GIF shares the same request. GIFs remain remote and are not persisted. Build and browser verification are pending.
+
+
+## User-owned exercise demos — 2026-11-25
+
+- Added a per-exercise custom demo control to the two-week routine.
+- Signed-in users can save a public HTTPS image/GIF URL or upload GIF/PNG/JPG/WEBP up to 4 MB.
+- Custom media is stored in MongoDB collection exercise_gifs, scoped to userId and normalized exercise name. Uploaded bytes are BSON binary; pasted links store only the URL.
+- Custom demos override ExerciseDB only for their owner. Removing a custom demo restores ExerciseDB lookup.
+- ExerciseDB API-derived media remains temporary and is never copied into persistent storage.
+- Production persistence depends on configuring the currently missing MONGODB_URI in Vercel.
+- Build/type-check and live database behavior must be verified after the one-push release; do not mark acceptance checks complete without evidence.

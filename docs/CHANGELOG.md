@@ -2,6 +2,16 @@
 
 Git commits are the authoritative record of exact source changes.
 
+## 2026-11-25 — User-owned exercise demos
+
+- Added per-exercise controls to paste a public HTTPS image/GIF URL or upload GIF, PNG, JPG or WEBP (4 MB maximum).
+- Added MongoDB persistence in exercise_gifs, one custom demo per authenticated user and normalized exercise name.
+- Uploaded file bytes are stored as BSON binary and served only through an authenticated, owner-checked API.
+- Custom demos take precedence over ExerciseDB for their owner; removing a custom demo restores provider lookup.
+- Kept ExerciseDB media temporary and separate; no provider GIFs or API-derived data are permanently stored.
+- Expanded AGENTS.md with mandatory custom-media security, storage, validation, testing and release rules.
+- Type-check/build and live MongoDB behavior require post-push verification; Vercel Production MONGODB_URI is documented as missing.
+
 ## 2026-11-25 — Dedicated workout builder screen
 
 - Moved the existing AI workout preference form and seven-day editable plan calendar from the home page to /workout-builder.

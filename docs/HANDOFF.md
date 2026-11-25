@@ -80,3 +80,16 @@ Do not claim cloud authentication/persistence passed until deployed MongoDB conn
 
 - `src/scripts/workouts.ts` queues unique exercise GIF lookups in workout order after rendering a plan. It waits for each remote image to decode before moving to the next. View GIF shares the same in-flight lookup and displays the preloaded remote URL. No GIF media is downloaded or persisted.
 - Run `npm run check` and `npm run build`, then verify in a browser after deployment.
+
+
+## User-owned exercise demos — 2026-11-25
+
+- New API: `src/pages/api/exercise-gifs.ts` (GET list/file, POST URL/upload, DELETE by exercise).
+- New UI: custom demo controls beside every two-week routine exercise in `src/scripts/two-week-routine.ts`.
+- MongoDB collection: `exercise_gifs`; unique per `userId + exerciseKey`.
+- Pasted HTTPS image/GIF URLs store URL metadata only; user uploads store BSON binary (GIF/PNG/JPEG/WEBP, max 4 MB).
+- Every operation is authenticated and owner-scoped. Custom demos take precedence over ExerciseDB for that account.
+- ExerciseDB media remains temporary/provider-hosted; never persist provider media.
+- Required verification: type-check/build, signed-in URL and file save, refresh persistence, delete/fallback, invalid upload/URL rejection, and two-user isolation.
+- Production blocker remains: Vercel Production MONGODB_URI is documented as missing. Configure it securely before expecting production saves to work.
+- Current work is not build-tested or production-verified until checks are actually run.

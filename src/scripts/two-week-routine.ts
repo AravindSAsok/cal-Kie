@@ -63,15 +63,19 @@ const week=document.getElementById("routine-week") as HTMLSelectElement|null;
 const day=document.getElementById("routine-day") as HTMLSelectElement|null;
 const content=document.getElementById("routine-content") as HTMLDivElement|null;
 type ExerciseGif={name:string;gifUrl:string};
+type CustomGif={id:string;exerciseName:string;source:"url"|"upload";gifUrl:string};
 if(root&&week&&day&&content){
  const weekControl=week!,dayControl=day!,contentRoot=content!;
- const cache=new Map<string,{promise:Promise<ExerciseGif|null>;expiresAt:number}>();let current=0;
+ const cache=new Map<string,{promise:Promise<ExerciseGif|null>;expiresAt:number}>();
+ const customGifs=new Map<string,CustomGif>();let current=0;
  const cacheTtlMs=55*60*1000;
+ fetch("/api/exercise-gifs",{credentials:"same-origin"}).then(async r=>{if(!r.ok)return null;return r.json() as Promise<{gifs?:CustomGif[]}>;}).then(body=>{for(const item of body?.gifs||[])customGifs.set(key(item.exerciseName),item);}).catch(()=>{});
  const key=(v:string)=>v.toLowerCase().replace(/[^a-z0-9 ]/g,"").trim();
  const escapes:Record<string,string>={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"};
  const esc=(v:string)=>v.replace(/[&<>"']/g,c=>escapes[c]||c);
  async function gif(name:string,refresh=false):Promise<ExerciseGif|null>{
-  const k=key(name),existing=cache.get(k);
+  const k=key(name),custom=customGifs.get(k);if(custom)return {name:custom.exerciseName,gifUrl:custom.gifUrl};
+  const existing=cache.get(k);
   if(!refresh&&existing&&existing.expiresAt>Date.now())return existing.promise;
   if(existing)cache.delete(k);
   const request=fetch("/api/exercises?search="+encodeURIComponent(name)+(refresh?"&refresh=1":""),{credentials:"same-origin"})
@@ -82,7 +86,7 @@ if(root&&week&&day&&content){
  }
  function render(){
   const d=routine[current];weekControl.value=String(d.week);dayControl.value=String(current%7);
-  const groups=d.groups.map((g,gi)=>'<section class="routine-group"><h3>'+esc(g.title)+'</h3><div class="routine-exercises">'+g.items.map((x,ei)=>{const id=gi+"-"+ei;return '<article class="routine-exercise"><div class="routine-exercise-head"><div><h4>'+esc(x.name)+'</h4><p>'+x.sets+' sets <span>·</span> '+esc(x.reps)+' reps</p></div><button class="routine-gif-button" data-gif="'+id+'" type="button" aria-expanded="false">▶ Show demo</button></div><ol>'+x.steps.map(s=>'<li>'+esc(s)+'</li>').join("")+'</ol><div class="routine-gif" id="routine-gif-'+id+'" aria-live="polite"></div></article>';}).join("")+'</div></section>').join("");
+  const groups=d.groups.map((g,gi)=>'<section class="routine-group"><h3>'+esc(g.title)+'</h3><div class="routine-exercises">'+g.items.map((x,ei)=>{const id=gi+"-"+ei;return '<article class="routine-exercise"><div class="routine-exercise-head"><div><h4>'+esc(x.name)+'</h4><p>'+x.sets+' sets <span>·</span> '+esc(x.reps)+' reps</p></div><button class="routine-gif-button" data-gif="'+id+'" type="button" aria-expanded="false">▶ Show demo</button></div><ol>'+x.steps.map(s=>'<li>'+esc(s)+'</li>').join("")+'</ol><div class="routine-gif" id="routine-gif-'+id+'" aria-live="polite"></div><button class="routine-custom-toggle" data-custom-open="'+id+'" type="button">＋ Add your GIF</button><div class="routine-custom-form" id="routine-custom-'+id+'" hidden><label>Paste an image/GIF URL<input type="url" data-custom-url="'+id+'" maxlength="2048" placeholder="https://..."></label><span>or upload GIF, PNG, JPG or WEBP · max 4 MB</span><input type="file" data-custom-file="'+id+'" accept="image/gif,image/png,image/jpeg,image/webp"><div class="routine-custom-actions"><button type="button" data-custom-save="'+id+'">Save demo</button><button type="button" data-custom-remove="'+id+'">Remove saved</button></div><small>Sign in to save a demo to your account. <a href="/signin">Sign in</a></small></div></article>';}).join("")+'</div></section>').join("");
   const dance=d.focus.startsWith("DANCE"),rest=d.focus.startsWith("REST");
   contentRoot.innerHTML='<div class="routine-day-heading"><div><p class="eyebrow">WEEK '+d.week+' · '+d.day.toUpperCase()+'</p><h3>'+esc(d.focus)+'</h3></div><span class="routine-note">'+(dance?"Choose a dance session you enjoy; warm up and adjust intensity.":rest?"Take a full rest day, easy walk or gentle mobility.":"Use controlled reps and leave 1–2 reps in reserve.")+'</span></div>'+(dance?'<div class="routine-special"><strong>Dance day</strong><p>Cardio and coordination. Hydrate and enjoy the session.</p></div>':rest?'<div class="routine-special"><strong>Recovery is part of progress.</strong><p>Rest, walk lightly or do gentle mobility.</p></div>':groups)+(d.day==="Saturday"?'<p class="routine-note routine-reminder">Keep Saturday moderate because dance is also scheduled. Do not take every set to failure.</p>':"");
  }
@@ -90,6 +94,33 @@ if(root&&week&&day&&content){
  dayControl.addEventListener("change",()=>{current=(Number(weekControl.value)-1)*7+Number(dayControl.value);localStorage.setItem("calkie.routine.day",String(current));render();});
  contentRoot.addEventListener("click",async(event:MouseEvent)=>{
   const target=event.target;if(!(target instanceof Element))return;
+  const customOpen=target.closest<HTMLButtonElement>("[data-custom-open]");
+  if(customOpen){const id=customOpen.dataset.customOpen;if(!id)return;const form=document.getElementById("routine-custom-"+id);if(form)form.toggleAttribute("hidden");return;}
+  const customSave=target.closest<HTMLButtonElement>("[data-custom-save]");
+  if(customSave){
+   const id=customSave.dataset.customSave;if(!id)return;const [gi,ei]=id.split("-").map(Number),x=routine[current].groups[gi]?.items[ei],form=document.getElementById("routine-custom-"+id);if(!x||!form)return;
+   const urlInput=form.querySelector<HTMLInputElement>('[data-custom-url="'+id+'"]'),fileInput=form.querySelector<HTMLInputElement>('[data-custom-file="'+id+'"]'),file=fileInput?.files?.[0];
+   if(!file&&!urlInput?.value.trim()){form.querySelector("small")!.textContent="Paste a URL or choose an image file first.";return;}
+   customSave.disabled=true;customSave.textContent="Saving…";
+   try{
+    let response:Response;
+    if(file){const body=new FormData();body.set("exerciseName",x.name);body.set("file",file);response=await fetch("/api/exercise-gifs",{method:"POST",credentials:"same-origin",body});}
+    else response=await fetch("/api/exercise-gifs",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({exerciseName:x.name,gifUrl:urlInput!.value.trim()})});
+    const result=await response.json() as {gif?:CustomGif;error?:string};if(!response.ok||!result.gif)throw new Error(response.status===401?"Please sign in first, then save your demo.":result.error||"Could not save this demo.");
+    customGifs.set(key(x.name),result.gif);const media={name:result.gif.exerciseName,gifUrl:result.gif.gifUrl};cache.set(key(x.name),{promise:Promise.resolve(media),expiresAt:Date.now()+cacheTtlMs});
+    const h=document.getElementById("routine-gif-"+id);if(h){h.innerHTML='<img src="'+esc(media.gifUrl)+'" alt="'+esc(media.name)+' exercise demonstration"><small>Your saved demo · <button type="button" data-custom-remove="'+id+'">Remove</button></small>';h.dataset.ready="true";h.className="routine-gif is-visible";}
+    form.setAttribute("hidden","");form.querySelector("small")!.textContent="Saved to your account.";if(urlInput)urlInput.value="";if(fileInput)fileInput.value="";
+   }catch(error){form.querySelector("small")!.textContent=error instanceof Error?error.message:"Could not save this demo.";}
+   finally{customSave.disabled=false;customSave.textContent="Save demo";}return;
+  }
+  const customRemove=target.closest<HTMLButtonElement>("[data-custom-remove]");
+  if(customRemove){
+   const id=customRemove.dataset.customRemove;if(!id)return;const [gi,ei]=id.split("-").map(Number),x=routine[current].groups[gi]?.items[ei];if(!x)return;
+   customRemove.disabled=true;
+   try{const response=await fetch("/api/exercise-gifs",{method:"DELETE",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({exerciseName:x.name})});const result=await response.json() as {error?:string};if(!response.ok)throw new Error(response.status===401?"Please sign in to remove your saved demo.":result.error||"Could not remove this demo.");customGifs.delete(key(x.name));cache.delete(key(x.name));const h=document.getElementById("routine-gif-"+id);if(h){h.dataset.ready="false";h.className="routine-gif";h.innerHTML="";}const form=document.getElementById("routine-custom-"+id);if(form?.querySelector("small"))form.querySelector("small")!.textContent="Saved demo removed.";}
+   catch(error){const form=document.getElementById("routine-custom-"+id);if(form?.querySelector("small"))form.querySelector("small")!.textContent=error instanceof Error?error.message:"Could not remove this demo.";}
+   finally{customRemove.disabled=false;}return;
+  }
   const button=target.closest<HTMLButtonElement>("[data-gif]");
   if(button){
    const id=button.dataset.gif;if(!id)return;const [gi,ei]=id.split("-").map(Number);
