@@ -2,6 +2,16 @@
 
 Git commits are the authoritative record of exact source changes.
 
+## 2026-11-25 — Dumbbell-only routine and timer
+
+- Replaced the hardcoded band-based Pallof press with Dumbbell plank drag and movement-specific instructions.
+- Removed the bands-and-dumbbells option from workout generation; default home equipment is dumbbells and bodyweight.
+- Updated the AI workout prompt to avoid band exercises and prefer dumbbell/bodyweight alternatives.
+- Added Timer links to the top bar and navigation drawer on Home and Workout Builder.
+- Added `/timer` with countdown presets, stopwatch/lap tracking, configurable interval rounds/work/rest and optional sound.
+- Kept the timer client-side with no account, API or database dependency.
+- Source-level routine/cue validation passed; type-check/build/browser checks remain pending after deployment.
+
 ## 2026-11-25 — User-owned exercise demos
 
 - Added per-exercise controls to paste a public HTTPS image/GIF URL or upload GIF, PNG, JPG or WEBP (4 MB maximum).

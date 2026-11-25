@@ -45,7 +45,7 @@ function buildPrompt(config:Config, weekStart:string, mode:string, dayIndex:numb
     "Do not repeat the exact same exercise anywhere else in the seven-day plan. Choose different but complementary exercises that fit the equipment and goal; repeated muscle-group focus is allowed only when the movement selection and stimulus are clearly different.",
     "Write exercise-specific instructions. The steps must describe the named movement and must not be generic copy-and-paste instructions shared across unrelated exercises.",
     "For day regeneration, do not reuse exercises from the adjacent days supplied in the existing plan; preserve the overall weekly split.",
-    "Respect the selected experience level, goal, available equipment and personal instructions. Do not prescribe equipment the user does not have.",
+    "Respect the selected experience level, goal, available equipment and personal instructions. Do not prescribe equipment the user does not have. Never prescribe resistance bands or band-based exercises; when a cable/band movement is suggested, choose a dumbbell or bodyweight alternative instead.",
     "Include warm-up/cool-down in the estimated session duration; the exercises' durationMinutes plus rest should fit the selected duration approximately. Do not exceed the requested session length by more than 10%.",
     "Use sensible sets, rep ranges and rest periods for the selected goal and level. Beginners should start conservatively. Do not prescribe maximal lifts or unsafe intensity.",
     "Rest days should have isRestDay=true, an empty exercises array and a short recovery suggestion in focus.",

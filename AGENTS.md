@@ -83,3 +83,12 @@ State current phase, latest commit, what changed, checks/results, blockers, exac
 9. Provide both URL and upload controls beside every two-week routine exercise. Show save/remove errors honestly; never show success until the API confirms the write.
 10. Update the phase record, project status, handoff and changelog. Run type-check/build when an environment is available; otherwise explicitly mark them unverified.
 11. One user-authorized release batch means one commit and one push to main after reviewing all changed files. Do not push intermediate changes.
+
+
+## Equipment and timer rules
+
+- The owner's hardcoded routine is dumbbells plus bodyweight only. Do not add resistance-band exercises or band-dependent movements to `src/scripts/two-week-routine.ts`; use a practical dumbbell/bodyweight substitute and write exercise-specific form cues. Keep the routine's cue-coverage guard intact.
+- The workout-builder equipment choices must not offer resistance bands. The default home option is dumbbells and bodyweight. AI generation prompts must not prescribe bands; prefer dumbbell or bodyweight alternatives.
+- The shared top-bar Timer shortcut on Home and Workout Builder must link to `/timer`. Keep the dedicated timer screen self-contained and usable without authentication or database access.
+- Timer screen acceptance: countdown supports editable minutes/seconds, quick presets, start/pause/reset and completion sound; stopwatch supports start/pause/reset and lap splits; interval timer supports configurable rounds/work/rest, presets, phase transitions, progress and reset. Use deadline-based timing so background-tab throttling does not accumulate drift. Sound is optional and must not block timer use.
+- Keep timer controls accessible, responsive and keyboard-operable. Do not add server APIs, persistence, tracking or account requirements for the timer unless explicitly requested.

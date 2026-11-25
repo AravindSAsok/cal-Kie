@@ -46,3 +46,11 @@ Keep the MVP focused. Do not expand scope until the MongoDB-only release is veri
 - [x] Sequentially preload remote ExerciseDB GIFs in workout order.
 - [x] Reuse the preload request when a user clicks View GIF.
 - [ ] Verify build and browser behavior after deployment.
+
+
+## Phase 6 — Dumbbell routine and timer
+- [x] Replace band-based movement in the hardcoded two-week routine with a dumbbell alternative.
+- [x] Remove the resistance-band option from workout generation and guide AI toward dumbbell/bodyweight choices.
+- [x] Add top-bar Timer navigation from Home and Workout Builder.
+- [x] Add countdown, stopwatch with laps, and configurable interval timer.
+- [ ] Verify type-check/build and browser behavior after deployment.

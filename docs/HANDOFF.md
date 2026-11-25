@@ -93,3 +93,14 @@ Do not claim cloud authentication/persistence passed until deployed MongoDB conn
 - Required verification: type-check/build, signed-in URL and file save, refresh persistence, delete/fallback, invalid upload/URL rejection, and two-user isolation.
 - Production blocker remains: Vercel Production MONGODB_URI is documented as missing. Configure it securely before expecting production saves to work.
 - Current work is not build-tested or production-verified until checks are actually run.
+
+
+## Dumbbell-only routine and timer — 2026-11-25
+
+- Replaced Week 2 Friday's band-based Pallof press with Dumbbell plank drag and movement-specific form cues. The cue-coverage guard remains active.
+- Workout Builder no longer offers a bands-and-dumbbells choice. Default home equipment is dumbbells and bodyweight; the AI prompt avoids resistance-band exercises.
+- Home and Workout Builder top bars and navigation drawers link to `/timer`.
+- `/timer` is a standalone client-side tool: countdown with editable duration/presets, stopwatch with lap splits, and configurable work/rest intervals with rounds and presets. Optional sound; no account/API/database required.
+- Changed files include the routine, builder, AI prompt, home, new timer page/script, AGENTS.md and project docs.
+- Source-level routine validation passed. No local install, type-check, production build or browser test was run as part of the GitHub-only edit; check Vercel after the single push.
+- Existing production MongoDB blocker remains: account/custom-demo persistence requires the authorized `MONGODB_URI`; timer functionality does not depend on MongoDB.

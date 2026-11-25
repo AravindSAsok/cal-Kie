@@ -1,6 +1,6 @@
 # Cal-Kie — Project Status
 
-_Last updated: 2026-11-25 after workout-builder navigation update._
+_Last updated: 2026-11-25 after dumbbell-only routine and timer screen update._
 
 ## At a glance
 
@@ -76,3 +76,13 @@ Sequential ExerciseDB GIF preloading is implemented in `src/scripts/workouts.ts`
 - ExerciseDB API-derived media remains temporary and is never copied into persistent storage.
 - Production persistence depends on configuring the currently missing MONGODB_URI in Vercel.
 - Build/type-check and live database behavior must be verified after the one-push release; do not mark acceptance checks complete without evidence.
+
+
+## Dumbbell-only routine and timer — 2026-11-25
+
+- Replaced the only band-named movement in the hardcoded 14-day routine (Pallof press) with Dumbbell plank drag and added specific form cues.
+- Removed the bands-and-dumbbells equipment choice from Workout Builder; the default home-equipment option is now dumbbells and bodyweight.
+- Tightened the AI workout prompt to avoid resistance-band prescriptions and prefer dumbbell/bodyweight alternatives.
+- Added a Timer shortcut to the top bar and navigation drawer on Home and Workout Builder.
+- Added `/timer` with countdown presets, stopwatch laps, and configurable work/rest interval rounds. Timer runs client-side, requires no sign-in or database, and uses deadline-based updates plus optional completion sounds.
+- Source-level validation passed for all 14 hardcoded routine days: no band-named exercise remains and every exercise has matching form cues. Type-check/build and browser behavior are pending post-push verification.
