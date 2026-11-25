@@ -1,72 +1,38 @@
 # Cal-Kie — Next Agent Handoff
 
-_Last updated: 2026-11-19 after local MongoDB-only migration checks._
-
-## Read first
-
-1. AGENTS.md
-2. docs/PROJECT_STATUS.md
-3. docs/ROADMAP.md
-4. docs/ARCHITECTURE.md
-5. docs/DECISIONS.md
-6. agent.md
+_Last updated: 2026-11-25 after dedicated workout-builder UI update._
 
 ## Repository
-
 - Repository: AravindSAsok/cal-Kie
 - Branch: main
-- Local path: D:/AI-Projects/cal-Kie
-- Parent/base commit: 0cd0dcf902b14626251ab3bf533fd84d5384a615.
-- Latest release commit: use git rev-parse HEAD; verify it matches origin/main after push.
-- This migration is released as one comprehensive commit on main. Do not force-push.
+- Production URL: https://cal-kie.vercel.app/
+- Stack: Astro 7 + TypeScript; MongoDB Atlas only.
 
-## Migration implemented locally
+## Latest UI change
+- The home page now focuses on the hero and existing two-week training routine.
+- The existing AI workout preferences form and editable seven-day plan calendar live at /workout-builder.
+- A right-side burger menu appears on both pages and links to Home and Generate Workout.
+- Home also has a direct Generate my workout link.
+- src/scripts/workouts.ts remains the existing workout interaction implementation. Its DOM IDs and API behavior were retained.
+- New navigation behavior lives in src/scripts/navigation.ts.
 
-- MongoDB connection module: src/lib/mongodb.ts.
-- Existing scrypt + session cookie contract reused in src/lib/auth.ts.
-- Signup/login/logout/me endpoints added under src/pages/api/auth/.
-- Workout persistence client now uses same-origin API requests and local fallback.
-- Workout plan GET/PUT/DELETE handlers added to src/pages/api/workout-plan.ts.
-- Account UI now talks to MongoDB-backed endpoints and collects a name for signup.
-- MongoDB collection name: workout_plans; DB default: hulksar.
-- Legacy database SDK, copied unused modules, old SQL migration files and outdated documentation removed.
-- No database records were modified during this source migration.
+## Files changed in this release
+- src/pages/index.astro
+- src/pages/workout-builder.astro (new)
+- src/scripts/navigation.ts (new)
+- src/styles/calkie.css
+- docs/PROJECT_STATUS.md
+- docs/CHANGELOG.md
+- docs/HANDOFF.md
 
-## MongoDB evidence
+## Verification still required
+No local checkout or local build was used, in accordance with the user's GitHub-only instruction. Inspect GitHub Actions and Vercel status after the single main-branch commit. Browser smoke-test desktop/mobile navigation, workout generation, editing, day/week regeneration and save/load. Do not claim these checks passed until observed.
 
-The connected Atlas cluster HulksarCluster in project Project 0 has database hulksar. Read-only inspection found collections users, auth_sessions, food_entries, assistant_messages, daily_tasks, daily_task_logs, tracker_settings, app_metadata and migration_state. The existing users records use 32-character hex salts and 128-character hex hashes, matching the scrypt implementation reused from ProjectHulksar. Existing unique email and session indexes were observed. No records were changed.
+## Existing production configuration caveat
+The earlier handoff recorded that Cal-Kie Production had MONGODB_DB_NAME=hulksar but no configured MONGODB_URI. Recheck Vercel's current environment before cloud authentication or persistence testing. Never expose or commit secrets.
 
-## Verified locally
-
-- Node.js v22.23.4.
-- npm install --package-lock-only completed.
-- npm ci --package-lock=true succeeded; 369 packages audited.
-- npm audit: 0 vulnerabilities.
-- npm run check: 0 errors, 0 warnings, 0 hints.
-- npm run build: success.
-- Local homepage: HTTP 200; account and workout UI markers present.
-- /api/auth/me without a cookie: HTTP 200 with user:null.
-- /api/auth/signup without MONGODB_URI: HTTP 503 (expected).
-- /api/workout-plan without a session: HTTP 401 (expected).
-
-## Production blocker
-
-Cal-Kie Vercel Production has MONGODB_DB_NAME=hulksar, but MONGODB_URI is not configured. The other Vercel project projecthulksar has a MongoDB variable, but the secret value was not exposed by the environment API and must not be guessed or copied from a public source. Add the authorised Atlas URI to Cal-Kie's Production environment through Vercel's secure environment settings, then redeploy. Never commit the URI.
-
-Password recovery email delivery is not configured; UI reports this limitation.
-
-## Required next actions
-
-1. Review git diff, ensure no secrets or unrelated files.
-2. Confirm remote main has not advanced.
-3. Commit once and push once to origin/main.
-4. Monitor Vercel and verify deployment READY.
-5. Add MONGODB_URI to Cal-Kie Production.
-6. Test signup/login/logout, workout save/load and two-user isolation against the deployed app.
-
-Do not claim cloud authentication/persistence passed until deployed MongoDB connectivity and two-user isolation have been tested.
-
-## Latest focused UI improvement — 2026-11-19
-
-- `src/scripts/workouts.ts` queues unique exercise GIF lookups in workout order after rendering a plan. It waits for each remote image to decode before moving to the next. View GIF shares the same in-flight lookup and displays the preloaded remote URL. No GIF media is downloaded or persisted.
-- Run `npm run check` and `npm run build`, then verify in a browser after deployment.
+## Guardrails
+- MongoDB Atlas is the only database.
+- Keep provider credentials server-side.
+- Do not modify account, API, database, or exercise GIF behavior for this UI task.
+- Avoid unrelated features and multiple release pushes.

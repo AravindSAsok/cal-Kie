@@ -1,134 +1,18 @@
 ---
 import Layout from "../layouts/Layout.astro";
 ---
-<Layout>
-  <div class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="/" aria-label="Cal-Kie home">
-        <span class="brand-mark">CK</span>
-        <span>cal<span class="brand-accent">-kie</span></span>
-      </a>
-      <div class="topbar-right">
-        <span class="live-label"><i></i> YOUR PERSONAL TRAINING SPACE</span>
-        <button class="button button-quiet" id="save-plan" type="button" disabled>Save week</button>
-      </div>
-    </header>
-
-    <main class="page">
-      <section class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">MOVE WITH A PLAN</p>
-          <h1>Your week.<br /><em>Your kind of strong.</em></h1>
-          <p class="hero-text">Build a workout week around your time, your goals and the way you like to train. Then make every day yours.</p>
-        </div>
-        <div class="hero-stats" aria-label="Workout plan summary">
-          <div><strong id="summary-days">7</strong><span>days planned</span></div>
-          <div><strong id="summary-sessions">5</strong><span>training days</span></div>
-          <div><strong id="summary-minutes">60</strong><span>minutes / session</span></div>
-        </div>
-      </section>
-
-<section class="routine-panel" id="two-week-routine"><div class="panel-heading"><div><p class="eyebrow">YOUR TWO-WEEK TRAINING PLAN</p><h2>Push · Legs · Pull · Full Body</h2><p class="routine-intro">Your structured 14-day split with form cues and exercise GIFs.</p></div><div class="routine-selectors"><label>Week<select id="routine-week"><option value="1">Week 1</option><option value="2">Week 2</option></select></label><label>Day<select id="routine-day"><option value="0">Monday</option><option value="1">Tuesday</option><option value="2">Wednesday</option><option value="3">Thursday</option><option value="4">Friday</option><option value="5">Saturday</option><option value="6">Sunday</option></select></label></div></div><div id="routine-content" class="routine-content"></div><p class="routine-footnote">Week 1: practise technique and establish weights. Week 2: improve reps or load only with good form. Repeat for 4–6 weeks and track progress; don't force weekly increases. Core work balances flexion, obliques and deep stability.</p></section><script>import "../scripts/two-week-routine";</script><style>.routine-panel{margin:34px 0;background:#18231c;border:1px solid #405343;border-radius:22px;padding:26px}.routine-intro,.routine-note{color:#a9b9aa;font-size:11px;line-height:1.6}.routine-selectors{display:flex;gap:10px}.routine-selectors label{display:grid;gap:5px;font-size:10px}.routine-selectors select{background:#111a14;color:#edf4ed;border:1px solid #405143;border-radius:8px;padding:9px}.routine-day-heading{display:flex;justify-content:space-between;gap:16px;margin:22px 0;border-bottom:1px solid #304035;padding-bottom:14px}.routine-day-heading h3{font:700 20px Manrope;margin:0}.routine-group{margin:20px 0}.routine-group h3{font:700 14px Manrope;color:#c6f36b}.routine-exercises{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.routine-exercise{background:#111a14;border:1px solid #304035;border-radius:13px;padding:14px}.routine-exercise-head{display:flex;justify-content:space-between;gap:8px}.routine-exercise h4{font:700 13px Manrope;margin:0}.routine-exercise-head p{font-size:10px;color:#c6f36b}.routine-gif-button,.gif-choice{background:#202d24;border:1px solid #596d4a;color:#c6f36b;border-radius:8px;padding:8px;font-size:10px}.routine-exercise ol{font-size:11px;line-height:1.6;color:#b8c6b8;padding-left:18px}.routine-gif img,.gif-choice img{width:min(100%,240px);max-height:190px;object-fit:contain;background:white;border-radius:8px}.routine-gif small{display:block;color:#9aab9d;font-size:9px;margin-top:6px}.routine-gif small button{background:none;border:0;color:#c6f36b}.gif-choice{display:inline-flex;flex-direction:column;margin:4px}.routine-special{background:#202d24;padding:18px;border-radius:12px}.routine-special p{font-size:12px;color:#a9b9aa}.routine-footnote{font-size:10px;color:#9aab9d;line-height:1.7}.account-nav{display:flex;gap:8px;align-items:center}.account-nav a{text-decoration:none}.account-email{font-size:10px;color:#b8c6b8}.auth-page{min-height:100vh;max-width:520px;margin:auto;padding:28px;display:flex;flex-direction:column;justify-content:center}.auth-card{background:#18221c;border:1px solid #405343;border-radius:22px;padding:28px}.auth-card h1{font:800 30px Manrope;margin:0}.auth-description,.auth-status,.auth-switch{font-size:12px;color:#a9b9aa;line-height:1.6}.auth-submit{width:100%}.auth-status[data-kind=error]{color:#ff9b8d}.auth-status[data-kind=success]{color:#c6f36b}.auth-switch a{color:#c6f36b}@media(max-width:700px){.routine-exercises{grid-template-columns:1fr}.routine-day-heading{flex-direction:column}.routine-panel{padding:18px}.routine-selectors{width:100%}.routine-selectors label{flex:1}.routine-selectors select{width:100%}}</style>
-      <section class="builder-panel" aria-labelledby="builder-title">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">THE PLAN BUILDER</p>
-            <h2 id="builder-title">Make it fit your life.</h2>
-          </div>
-          <span class="ai-chip"><span>✦</span> AI WEEK BUILDER</span>
-        </div>
-        <form id="generator-form">
-          <div class="form-grid">
-            <label class="field">
-              <span>Session length</span>
-              <div class="input-with-unit"><input id="duration" type="number" min="10" max="180" step="5" value="60" required /><span>min</span></div>
-              <small>Choose your workout duration</small>
-            </label>
-            <label class="field">
-              <span>Exercises per session</span>
-              <div class="input-with-unit"><input id="exercise-count" type="number" min="2" max="12" value="5" required /><span>moves</span></div>
-              <small>How many exercises on active days</small>
-            </label>
-            <label class="field">
-              <span>Training days</span>
-              <select id="training-days">
-                <option value="3">3 days / week</option>
-                <option value="4">4 days / week</option>
-                <option value="5" selected>5 days / week</option>
-                <option value="6">6 days / week</option>
-                <option value="7">7 days / week</option>
-              </select>
-              <small>All seven days are scheduled</small>
-            </label>
-            <label class="field">
-              <span>Fitness goal</span>
-              <select id="goal">
-                <option value="general fitness">General fitness</option>
-                <option value="build strength">Build strength</option>
-                <option value="muscle growth">Muscle growth</option>
-                <option value="fat loss and conditioning">Fat loss & conditioning</option>
-                <option value="mobility and flexibility">Mobility & flexibility</option>
-                <option value="endurance">Endurance</option>
-              </select>
-              <small>What are you working towards?</small>
-            </label>
-            <label class="field">
-              <span>Experience level</span>
-              <select id="level">
-                <option value="beginner">Beginner</option>
-                <option value="intermediate" selected>Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-              <small>Keep the plan realistic for you</small>
-            </label>
-            <label class="field">
-              <span>Equipment</span>
-              <select id="equipment">
-                <option value="bodyweight only">Bodyweight only</option>
-                <option value="basic home equipment">Basic home equipment</option>
-                <option value="full gym equipment">Full gym equipment</option>
-                <option value="resistance bands and dumbbells">Bands & dumbbells</option>
-              </select>
-              <small>Only include equipment you have</small>
-            </label>
-            <label class="field field-wide">
-              <span>Focus or personal instructions <b>optional</b></span>
-              <textarea id="focus" rows="2" maxlength="600" placeholder="e.g. focus on legs and core, avoid jumping, prefer short circuits, protect my recovery days..."></textarea>
-            </label>
-          </div>
-          <div class="builder-footer">
-            <p><span>✦</span> Your plan includes sets, reps, rest and estimated timing. Edit anything afterwards.</p>
-            <button class="button button-primary" id="generate-plan" type="submit"><span>✦</span> Generate my 7-day week</button>
-          </div>
-        </form>
-        <p class="status-message" id="generator-status" role="status" aria-live="polite"></p>
-      </section>
-
-      <section class="week-section" aria-labelledby="week-title">
-        <div class="week-heading">
-          <div>
-            <p class="eyebrow">YOUR TRAINING CALENDAR</p>
-            <h2 id="week-title">The week ahead</h2>
-            <p class="week-subtitle" id="week-subtitle">Your personalised plan will appear here.</p>
-          </div>
-          <div class="week-actions">
-            <button class="button button-quiet" id="regenerate-week" type="button" disabled>↻ Regenerate week</button>
-          </div>
-        </div>
-        <div class="week-empty" id="week-empty">
-          <div class="empty-orbit"><span>✦</span></div>
-          <h3>Your next seven days start here.</h3>
-          <p>Choose your preferences above and let Cal-Kie build a week around you.</p>
-        </div>
-        <div class="week-grid" id="week-grid"></div>
-      </section>
-
-      <footer class="app-footer">
-        <span>cal-kie · made to move with you</span>
-        <span>Exercise demonstrations are fetched on demand from ExerciseDB by AscendAPI. Free V1 use is non-commercial; attribution is shown. GIFs are not saved by Cal-Kie.</span>
-      </footer>
-    </main>
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  </div>
-  <script>import "../scripts/workouts";</script>
+<Layout title="Cal-Kie — Your week, your workout">
+<div class="app-shell">
+<header class="topbar"><a class="brand" href="/" aria-label="Cal-Kie home"><span class="brand-mark">CK</span><span>cal<span class="brand-accent">-kie</span></span></a><div class="topbar-right"><span class="live-label"><i></i> YOUR PERSONAL TRAINING SPACE</span><button class="button button-menu" id="menu-toggle" type="button" aria-controls="app-menu" aria-expanded="false" aria-label="Open navigation menu"><span></span><span></span><span></span></button></div></header>
+<button class="menu-backdrop" id="menu-backdrop" type="button" aria-label="Close navigation menu" hidden></button>
+<aside class="app-menu" id="app-menu" role="dialog" aria-modal="true" aria-label="Main navigation" hidden><div class="app-menu-head"><span>YOUR SPACE</span><button class="menu-close" id="menu-close" type="button" aria-label="Close menu">×</button></div><a class="app-menu-link active" href="/"><span>⌂</span><span><strong>Home</strong><small>Your training space</small></span></a><a class="app-menu-link app-menu-primary" href="/workout-builder"><span>✦</span><span><strong>Generate Workout</strong><small>Build a week around your goals</small></span><span class="menu-arrow">→</span></a></aside>
+<main class="page">
+<section class="hero"><div class="hero-copy"><p class="eyebrow">MOVE WITH A PLAN</p><h1>Your week.<br/><em>Your kind of strong.</em></h1><p class="hero-text">Build a workout week around your time, your goals and the way you like to train. Then make every day yours.</p><a class="button button-primary home-builder-link" href="/workout-builder"><span>✦</span> Generate my workout</a></div><div class="hero-stats" aria-label="Workout plan summary"><div><strong>7</strong><span>days planned</span></div><div><strong>5</strong><span>training days</span></div><div><strong>60</strong><span>minutes / session</span></div></div></section>
+<section class="routine-panel" id="two-week-routine"><div class="panel-heading"><div><p class="eyebrow">YOUR TWO-WEEK TRAINING PLAN</p><h2>Push · Legs · Pull · Full Body</h2><p class="routine-intro">Your structured 14-day split with form cues and exercise GIFs.</p></div><div class="routine-selectors"><label>Week<select id="routine-week"><option value="1">Week 1</option><option value="2">Week 2</option></select></label><label>Day<select id="routine-day"><option value="0">Monday</option><option value="1">Tuesday</option><option value="2">Wednesday</option><option value="3">Thursday</option><option value="4">Friday</option><option value="5">Saturday</option><option value="6">Sunday</option></select></label></div></div><div id="routine-content" class="routine-content"></div><p class="routine-footnote">Week 1: practise technique and establish weights. Week 2: improve reps or load only with good form. Repeat for 4–6 weeks and track progress; don't force weekly increases. Core work balances flexion, obliques and deep stability.</p></section>
+<footer class="app-footer"><span>cal-kie · made to move with you</span><span>Exercise demonstrations are fetched on demand from ExerciseDB by AscendAPI. Free V1 use is non-commercial; attribution is shown. GIFs are not saved by Cal-Kie.</span></footer>
+</main></div>
+<script>import "../scripts/two-week-routine";</script><script>import "../scripts/navigation";</script>
+<style>
+.routine-panel{margin:34px 0;background:#18231c;border:1px solid #405343;border-radius:22px;padding:26px}.routine-intro,.routine-note{color:#a9b9aa;font-size:11px;line-height:1.6}.routine-selectors{display:flex;gap:10px}.routine-selectors label{display:grid;gap:5px;font-size:10px}.routine-selectors select{background:#111a14;color:#edf4ed;border:1px solid #405143;border-radius:8px;padding:9px}.routine-day-heading{display:flex;justify-content:space-between;gap:16px;margin:22px 0;border-bottom:1px solid #304035;padding-bottom:14px}.routine-day-heading h3{font:700 20px Manrope;margin:0}.routine-group{margin:20px 0}.routine-group h3{font:700 14px Manrope;color:#c6f36b}.routine-exercises{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.routine-exercise{background:#111a14;border:1px solid #304035;border-radius:13px;padding:14px}.routine-exercise-head{display:flex;justify-content:space-between;gap:8px}.routine-exercise h4{font:700 13px Manrope;margin:0}.routine-exercise-head p{font-size:10px;color:#c6f36b}.routine-gif-button,.gif-choice{background:#202d24;border:1px solid #596d4a;color:#c6f36b;border-radius:8px;padding:8px;font-size:10px}.routine-exercise ol{font-size:11px;line-height:1.6;color:#b8c6b8;padding-left:18px}.routine-gif img,.gif-choice img{width:min(100%,240px);max-height:190px;object-fit:contain;background:white;border-radius:8px}.routine-gif small{display:block;color:#9aab9d;font-size:9px;margin-top:6px}.routine-gif small button{background:none;border:0;color:#c6f36b}.gif-choice{display:inline-flex;flex-direction:column;margin:4px}.routine-special{background:#202d24;padding:18px;border-radius:12px}.routine-special p{font-size:12px;color:#a9b9aa}.routine-footnote{font-size:10px;color:#9aab9d;line-height:1.7}.home-builder-link{display:inline-flex;margin-top:22px;align-items:center;gap:8px}@media(max-width:700px){.routine-exercises{grid-template-columns:1fr}.routine-day-heading{flex-direction:column}.routine-panel{padding:18px}.routine-selectors{width:100%}.routine-selectors label{flex:1}.routine-selectors select{width:100%}}
+</style>
 </Layout>
