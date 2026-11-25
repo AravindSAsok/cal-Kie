@@ -20,7 +20,7 @@ if(root&&week&&day&&content){
   if(existing)cache.delete(k);
   const request=fetch("/api/exercises?search="+encodeURIComponent(name)+(refresh?"&refresh=1":""),{credentials:"same-origin"})
    .then(async r=>{if(!r.ok)throw Error("GIF search is unavailable.");return r.json();})
-   .then((b:{exercises?:ExerciseGif[]})=>(b.exercises||[]).find(x=>key(x.name)===k)||(b.exercises||[])[0]||null);
+   .then((b:{exercises?:ExerciseGif[]})=>(b.exercises||[]).find(x=>key(x.name)===k)||null);
   cache.set(k,{promise:request,expiresAt:Date.now()+cacheTtlMs});
   try{return await request;}catch(e){cache.delete(k);throw e;}
  }

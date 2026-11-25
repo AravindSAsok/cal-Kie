@@ -41,6 +41,10 @@ function buildPrompt(config:Config, weekStart:string, mode:string, dayIndex:numb
     "Return JSON only. Do not include markdown, commentary, citations or extra text.",
     "The user wants a seven-day calendar. For a full week, return exactly seven days in Monday-to-Sunday order. Include exactly the requested number of training days; use active recovery/rest days for the remaining days.",
     "On every active day, include exactly the requested exercise count. Balance muscle groups and avoid training the same muscle group hard on consecutive days.",
+    "Make every training day meaningfully distinct: vary the main movement patterns, exercise selection, order and training emphasis instead of reusing one template with renamed days.",
+    "Do not repeat the exact same exercise anywhere else in the seven-day plan. Choose different but complementary exercises that fit the equipment and goal; repeated muscle-group focus is allowed only when the movement selection and stimulus are clearly different.",
+    "Write exercise-specific instructions. The steps must describe the named movement and must not be generic copy-and-paste instructions shared across unrelated exercises.",
+    "For day regeneration, do not reuse exercises from the adjacent days supplied in the existing plan; preserve the overall weekly split.",
     "Respect the selected experience level, goal, available equipment and personal instructions. Do not prescribe equipment the user does not have.",
     "Include warm-up/cool-down in the estimated session duration; the exercises' durationMinutes plus rest should fit the selected duration approximately. Do not exceed the requested session length by more than 10%.",
     "Use sensible sets, rep ranges and rest periods for the selected goal and level. Beginners should start conservatively. Do not prescribe maximal lifts or unsafe intensity.",
@@ -101,6 +105,8 @@ export const POST:APIRoute=async({request})=>{
         const days=parsed.days.map((day,index)=>({...validateDay(day,config),date:new Date(Date.UTC(weekStartDate.getUTCFullYear(),weekStartDate.getUTCMonth(),weekStartDate.getUTCDate()+index)).toISOString().slice(0,10)}));
         if(days.filter(d=>!d.isRestDay).length!==config.trainingDays) throw new Error("AI did not follow the requested number of training days.");
         if(days.some(d=>!d.isRestDay&&d.exercises.length!==config.exerciseCount)) throw new Error("AI did not follow the requested exercise count.");
+        const exerciseNames=days.filter(d=>!d.isRestDay).flatMap(d=>d.exercises.map(e=>e.name.toLowerCase().replace(/[^a-z0-9 ]/g,"").trim()));
+        if(new Set(exerciseNames).size!==exerciseNames.length) throw new Error("AI repeated an exercise across training days; generate a more varied plan.");
         return json({plan:{title:typeof parsed.title==="string"?parsed.title.slice(0,80):"Your Cal-Kie training week",weekStart:start,durationMinutes:config.durationMinutes,exerciseCount:config.exerciseCount,trainingDays:config.trainingDays,goal:config.goal,level:config.level,equipment:config.equipment,days},provider:provider.provider,model:provider.model});
       } catch(error) { failures.push(provider.provider+": "+(error instanceof Error?error.message:"request failed")); }
     }

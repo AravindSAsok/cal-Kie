@@ -113,7 +113,7 @@ async function getExerciseDemo(exerciseName: string): Promise<ExerciseDemo | nul
     if (!response.ok) throw new Error("Exercise reference search is unavailable.");
     const body = await response.json() as { exercises?: ExerciseDemo[] };
     const results = body.exercises || [];
-    const match = results.find(item => demoKey(item.name) === key) || results[0];
+    const match = results.find(item => demoKey(item.name) === key);
     if (!match) return null;
 
     // Decode the remote GIF before marking it as ready for instant display.
