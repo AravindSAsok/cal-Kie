@@ -94,3 +94,36 @@
 .app-menu-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;color:#9aab9d;font-size:10px;font-weight:800;letter-spacing:1.8px}.menu-close{width:36px;height:36px;border:1px solid #405143;border-radius:10px;background:#202d24;color:#edf4ed;font-size:23px}
 .app-menu-link{display:flex;align-items:center;gap:13px;padding:15px;border:1px solid #304035;border-radius:14px;color:#edf4ed;text-decoration:none}.app-menu-link>span:first-child{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:#263629;color:#c6f36b;font-size:20px}.app-menu-link strong,.app-menu-link small{display:block}.app-menu-link strong{font-size:13px}.app-menu-link small{margin-top:4px;color:#9aab9d;font-size:10px}.app-menu-link.active,.app-menu-primary{border-color:#60764b;background:#202d24}.app-menu-primary>span:nth-child(2){flex:1}.menu-arrow{color:#c6f36b;font-size:20px}body.menu-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){.app-menu{animation:none}}
+
+
+/* Mobile typography: clearer, slightly heavier Instagram-like reading weight. */
+@media(max-width:700px){
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-weight:500;
+    -webkit-font-smoothing:auto;
+    text-rendering:optimizeLegibility;
+  }
+  .hero-text,.routine-intro,.routine-note,.routine-footnote,.week-subtitle,
+  .builder-footer p,.field>span,.field small,.routine-exercise ol,
+  .routine-exercise-head p,.day-focus,.day-meta,.day-total,
+  .mini-field,.routine-gif small,.gif-alternatives>p,.gif-error,
+  .account-intro,.account-field,.app-menu-link small,.app-footer{
+    font-weight:500;
+    color:#c0cec1;
+  }
+  .hero-text{font-size:14px;line-height:1.75}
+  .routine-intro,.routine-note,.week-subtitle,.builder-footer p{font-size:12px;line-height:1.7}
+  .field>span,.routine-exercise h4,.exercise-name,.app-menu-link strong{font-weight:700}
+  .field>span{font-size:13px}
+  .field small,.routine-exercise ol,.routine-exercise-head p{font-size:12px;line-height:1.75}
+  .routine-exercise ol{color:#c0cec1}
+  .routine-group>h3{font-size:13px;font-weight:800}
+  .routine-gif small,.app-menu-link small,.day-meta,.mini-field{font-size:11px}
+  .routine-gif small button,.routine-gif-button,.gif-choice span,
+  .small-button,.demo-button,.button{font-weight:700}
+  .routine-gif-button,.gif-choice span,.small-button,.demo-button{font-size:11px}
+  .app-footer{font-size:11px;line-height:1.65}
+  .account-intro,.account-field{font-size:13px;line-height:1.65}
+  .account-links button{font-size:12px;font-weight:700}
+}
