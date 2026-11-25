@@ -20,13 +20,11 @@ if(root&&week&&day&&content){
    .then((b:{exercises?:ExerciseGif[]})=>(b.exercises||[]).find(x=>key(x.name)===k)||(b.exercises||[])[0]||null);
   cache.set(k,request);try{return await request;}catch(e){cache.delete(k);throw e;}
  }
- async function preload(){for(const g of routine[current].groups)for(const x of g.items){try{const m=await gif(x.name);if(m){const im=new Image();im.decoding="async";im.src=m.gifUrl;await im.decode().catch(()=>{});}}catch{/* retry is available on demand */}}}
  function render(){
   const d=routine[current];weekControl.value=String(d.week);dayControl.value=String(current%7);
   const groups=d.groups.map((g,gi)=>'<section class="routine-group"><h3>'+esc(g.title)+'</h3><div class="routine-exercises">'+g.items.map((x,ei)=>{const id=gi+"-"+ei;return '<article class="routine-exercise"><div class="routine-exercise-head"><div><h4>'+esc(x.name)+'</h4><p>'+x.sets+' sets <span>·</span> '+esc(x.reps)+' reps</p></div><button class="routine-gif-button" data-gif="'+id+'" type="button" aria-expanded="false">▶ Show demo</button></div><ol>'+x.steps.map(s=>'<li>'+esc(s)+'</li>').join("")+'</ol><div class="routine-gif" id="routine-gif-'+id+'" aria-live="polite"></div></article>';}).join("")+'</div></section>').join("");
   const dance=d.focus.startsWith("DANCE"),rest=d.focus.startsWith("REST");
   contentRoot.innerHTML='<div class="routine-day-heading"><div><p class="eyebrow">WEEK '+d.week+' · '+d.day.toUpperCase()+'</p><h3>'+esc(d.focus)+'</h3></div><span class="routine-note">'+(dance?"Choose a dance session you enjoy; warm up and adjust intensity.":rest?"Take a full rest day, easy walk or gentle mobility.":"Use controlled reps and leave 1–2 reps in reserve.")+'</span></div>'+(dance?'<div class="routine-special"><strong>Dance day</strong><p>Cardio and coordination. Hydrate and enjoy the session.</p></div>':rest?'<div class="routine-special"><strong>Recovery is part of progress.</strong><p>Rest, walk lightly or do gentle mobility.</p></div>':groups)+(d.day==="Saturday"?'<p class="routine-note routine-reminder">Keep Saturday moderate because dance is also scheduled. Do not take every set to failure.</p>':"");
-  void preload();
  }
  weekControl.addEventListener("change",()=>{current=(Number(weekControl.value)-1)*7+current%7;localStorage.setItem("calkie.routine.day",String(current));render();});
  dayControl.addEventListener("change",()=>{current=(Number(weekControl.value)-1)*7+Number(dayControl.value);localStorage.setItem("calkie.routine.day",String(current));render();});
