@@ -32,3 +32,56 @@
 .account-profile-email{font-size:12px;color:var(--lime)}
 #calkie-account-session-actions{margin-top:14px}
 @media(max-width:560px){.account-trigger{padding:9px 10px;font-size:10px}.account-dialog{padding:20px}}
+
+/* Workout experience polish */
+.routine-panel{position:relative;overflow:hidden;isolation:isolate;box-shadow:0 22px 60px #0003;background:linear-gradient(145deg,#1c2a20,#172019 68%,#1b291f);transition:border-color .2s,box-shadow .2s}
+.routine-panel:before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,transparent,var(--lime),#7d9e56,transparent);opacity:.8;z-index:-1}
+.routine-panel .panel-heading{align-items:flex-start;flex-wrap:wrap}
+.routine-selectors{background:#111a14;border:1px solid #344638;border-radius:13px;padding:6px}
+.routine-selectors label{padding:3px 5px;color:#91a391;font-weight:700;letter-spacing:.4px}
+.routine-selectors select{min-width:112px;min-height:40px;padding:9px 30px 9px 11px;border-color:#405143;background:#202d24;cursor:pointer;transition:border-color .2s,background .2s}
+.routine-selectors select:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.routine-day-heading{align-items:center;margin:22px 0 18px;padding:18px 20px;border:1px solid #344638;border-radius:15px;background:linear-gradient(110deg,#253629,#1a261e)}
+.routine-day-heading .eyebrow{margin-bottom:8px}
+.routine-day-heading h3{font-size:clamp(18px,3vw,23px);letter-spacing:-.5px}
+.routine-note{max-width:300px;font-size:11px;line-height:1.6}
+.routine-reminder{margin:18px 0 0;padding:12px 14px;border-left:3px solid var(--lime);border-radius:0 10px 10px 0;background:#c6f36b0d}
+.routine-group{margin:23px 0}
+.routine-group>h3{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+.routine-group>h3:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,#405343,transparent)}
+.routine-exercises{gap:12px}
+.routine-exercise{position:relative;min-width:0;padding:15px;border-radius:15px;border-color:#344638;background:linear-gradient(150deg,#19251d,#111a14);box-shadow:0 8px 22px #00000013;transition:transform .18s,border-color .18s,box-shadow .18s}
+.routine-exercise:hover{transform:translateY(-2px);border-color:#60784b;box-shadow:0 12px 28px #0003}
+.routine-exercise-head{align-items:center}
+.routine-exercise h4{font-size:13px;line-height:1.4}
+.routine-exercise-head p{display:inline-flex;gap:5px;align-items:center;margin:7px 0 0;font-size:10px;font-weight:700;letter-spacing:.2px}
+.routine-exercise-head p span{color:#829482}
+.routine-gif-button,.gif-choice{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:35px;padding:8px 11px;border-radius:9px;font-weight:700;transition:background .18s,border-color .18s,transform .18s}
+.routine-gif-button:hover,.gif-choice:hover{transform:translateY(-1px);background:#34452d;border-color:#9fca60}
+.routine-gif-button:disabled,.gif-choice:disabled{opacity:.65;cursor:wait;transform:none}
+.routine-exercise ol{margin:13px 0 0;padding-left:19px;color:#aebcaf;font-size:11px;line-height:1.75}
+.routine-exercise ol li{padding-left:3px;margin:3px 0}
+.routine-gif{display:none;margin-top:13px;padding-top:13px;border-top:1px solid #344638}
+.routine-gif.is-visible{display:block;animation:gif-reveal .22s ease-out}
+.routine-gif>img{display:block;width:min(100%,260px);max-height:220px;object-fit:contain;margin:0 auto;border-radius:11px;background:#f8faf6;box-shadow:0 5px 18px #0003}
+.routine-gif small{display:flex;justify-content:center;align-items:center;gap:5px;margin-top:9px;color:#879987;font-size:9px}
+.routine-gif small button,.gif-error button{border:0;background:none;color:var(--lime);font:700 10px "DM Sans",sans-serif;padding:3px 5px}
+.routine-gif small button:hover,.gif-error button:hover{text-decoration:underline}
+.gif-skeleton{display:flex;align-items:center;justify-content:center;gap:11px;min-height:92px;border:1px solid #344638;border-radius:11px;background:linear-gradient(100deg,#1a261e 20%,#28392a 42%,#1a261e 64%);background-size:220% 100%;animation:gif-shimmer 1.4s linear infinite;color:#aebcaf;font-size:11px}
+.gif-spinner{width:17px;height:17px;border:2px solid #62784e;border-top-color:var(--lime);border-radius:50%;animation:gif-spin .8s linear infinite}
+.gif-error{margin:0;padding:12px;border:1px solid #765044;border-radius:10px;background:#38251f;color:#ffc1ae;font-size:11px;text-align:center}
+.gif-alternatives>p{margin:0 0 9px;color:#aebcaf;font-size:10px}
+.gif-choice{display:inline-flex;flex-direction:column;vertical-align:top;width:min(46%,150px);min-height:0;margin:0 7px 7px 0;padding:8px;white-space:normal;text-align:center}
+.gif-choice img{width:100%;height:100px;object-fit:contain;border-radius:7px;background:#f8faf6}
+.gif-choice span{font-size:10px;line-height:1.4}
+.routine-special{position:relative;overflow:hidden;border:1px solid #3c513b;background:linear-gradient(120deg,#263a2b,#1b2a20);padding:22px;border-radius:15px}
+.routine-special:before{content:"";position:absolute;right:-30px;top:-55px;width:150px;height:150px;border:1px solid #c6f36b24;border-radius:50%;box-shadow:0 0 0 18px #c6f36b08,0 0 0 36px #c6f36b05}
+.routine-special strong{font:800 16px Manrope;color:var(--lime)}
+.routine-special p{max-width:520px;font-size:12px;line-height:1.7}
+.routine-footnote{border-top:1px solid #344638;padding-top:16px;margin-top:23px}
+@keyframes gif-spin{to{transform:rotate(360deg)}}
+@keyframes gif-shimmer{to{background-position:-220% 0}}
+@keyframes gif-reveal{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:700px){.routine-panel{padding:19px 14px}.routine-panel .panel-heading{gap:15px}.routine-selectors{width:100%;display:grid;grid-template-columns:1fr 1fr}.routine-selectors label{min-width:0}.routine-selectors select{min-width:0;width:100%}.routine-day-heading{align-items:flex-start;flex-direction:column;padding:15px}.routine-note{max-width:none}.routine-exercise{padding:13px}.routine-exercise-head{align-items:flex-start}.routine-gif-button{font-size:9px;padding:7px 9px;white-space:nowrap}.routine-exercise ol{font-size:10px}.gif-choice{width:calc(50% - 7px);margin-right:5px}.gif-choice img{height:88px}}
+@media(hover:none){.routine-exercise:hover{transform:none;box-shadow:0 8px 22px #00000013}}
+@media(prefers-reduced-motion:reduce){.routine-panel,.routine-exercise,.routine-gif-button,.gif-choice,.routine-gif.is-visible,.gif-spinner,.gif-skeleton{animation:none!important;transition:none!important}}
