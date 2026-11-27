@@ -164,7 +164,7 @@ if(root&&week&&day&&content){
    choice.disabled=true;
    const k=key(h.dataset.exercise||"");
    cache.set(k,{promise:Promise.resolve(m),expiresAt:Date.now()+cacheTtlMs});
-   h.innerHTML='<img src="'+esc(m.gifUrl)+'" alt="'+esc(m.name)+' exercise demonstration"><small>Selected for this session · ${esc(m.source||"Exercise reference")}${m.sourceUrl?' · <a href="'+esc(m.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Source</a>':''}</small>';
+   h.innerHTML='<img src="'+esc(m.gifUrl)+'" alt="'+esc(m.name)+' exercise demonstration"><small>Selected for this session · '+esc(m.source||"Exercise reference")+(m.sourceUrl?' · <a href="'+esc(m.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Source</a>':'')+'</small>';
    h.dataset.ready="true";
   }
  });
