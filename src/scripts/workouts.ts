@@ -127,13 +127,14 @@ function bestExerciseMatch<T extends { name: string }>(name: string, list: T[]):
   return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
 }
 
-async function getExerciseDemo(exerciseName: string): Promise<ExerciseDemo | null> {
+async function getExerciseDemo(exerciseName: string, refresh = false): Promise<ExerciseDemo | null> {
   const key = demoKey(exerciseName);
   const existing = demoLookups.get(key);
-  if (existing) return existing;
+  if (!refresh && existing) return existing;
+  if (refresh) demoLookups.delete(key);
 
   const lookup = (async () => {
-    const response = await fetch("/api/exercises?search=" + encodeURIComponent(exerciseName), { cache:"no-store" });
+    const response = await fetch("/api/exercises?search=" + encodeURIComponent(exerciseName) + (refresh ? "&refresh=1" : ""), { cache:"no-store" });
     if (!response.ok) throw new Error("Exercise reference search is unavailable.");
     const body = await response.json() as { exercises?: ExerciseDemo[] };
     const results = body.exercises || [];
@@ -191,26 +192,35 @@ async function preloadNextDemo() {
   }
 }
 
-async function loadDemo(dayIndex:number, exerciseIndex:number) {
+async function loadDemo(dayIndex:number, exerciseIndex:number, refresh = false) {
   if (!plan) return;
   const exercise = plan.days[dayIndex]?.exercises[exerciseIndex];
   const holder = byId<HTMLDivElement>(`demo-${dayIndex}-${exerciseIndex}`);
-  if (!exercise || holder.dataset.loaded === "true") { holder.classList.toggle("visible"); return; }
+  if (!exercise || (!refresh && holder.dataset.loaded === "true")) { holder.classList.toggle("visible"); return; }
   holder.classList.add("visible");
   holder.textContent = "Loading demonstration…";
   try {
-    const match = await getExerciseDemo(exercise.name);
+    const match = await getExerciseDemo(exercise.name, refresh);
     if (!match) throw new Error("No GIF found for this exercise.");
     holder.innerHTML = `<img src="${esc(match.gifUrl)}" alt="${esc(match.name)} demonstration" loading="eager" decoding="async" referrerpolicy="no-referrer" /><div class="demo-credit">Demo: ${esc(match.name)} · ${esc(match.source || "Exercise reference")}${match.sourceUrl ? ` · <a href="${esc(match.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source</a>` : ""}</div>`;
     holder.dataset.loaded = "true";
+    holder.querySelector("img")?.addEventListener("error", () => {
+      holder.dataset.loaded = "false";
+      holder.innerHTML = '<p class="demo-error">This GIF did not load. <button type="button" data-find-demo="'+dayIndex+':'+exerciseIndex+'">Find more demos</button> <button type="button" data-retry-demo="'+dayIndex+':'+exerciseIndex+'">Try again</button></p>';
+    }, { once: true });
   } catch (error) {
-    holder.textContent = error instanceof Error ? error.message : "Demo unavailable right now.";
+    holder.dataset.loaded = "false";
+    holder.innerHTML = '<p class="demo-error">'+esc(error instanceof Error ? error.message : "Demo unavailable right now.")+' <button type="button" data-find-demo="'+dayIndex+':'+exerciseIndex+'">Find more demos</button> <button type="button" data-retry-demo="'+dayIndex+':'+exerciseIndex+'">Try again</button></p>';
   }
 }
 function handleGridClick(event: Event) {
   const target = event.target as HTMLElement;
   const demo = target.closest<HTMLElement>("[data-demo]")?.dataset.demo;
   if (demo) { const [d,e] = demo.split(":").map(Number); void loadDemo(d,e); return; }
+  const findDemo = target.closest<HTMLElement>("[data-find-demo]")?.dataset.findDemo;
+  if (findDemo) { const [d,e] = findDemo.split(":").map(Number); void loadDemo(d,e,true); return; }
+  const retryDemo = target.closest<HTMLElement>("[data-retry-demo]")?.dataset.retryDemo;
+  if (retryDemo) { const [d,e] = retryDemo.split(":").map(Number); void loadDemo(d,e); return; }
   const remove = target.closest<HTMLElement>("[data-remove]")?.dataset.remove;
   if (remove && plan) { const [d,e] = remove.split(":").map(Number); plan.days[d].exercises.splice(e,1); render(); return; }
   const rebuild = target.closest<HTMLElement>("[data-regenerate-day]")?.dataset.regenerateDay;
