@@ -141,8 +141,8 @@ if(root&&week&&day&&content){
     const m=await gif(x.name);if(!m)throw Error("No matching demo found.");
     h.innerHTML='<img src="'+esc(m.gifUrl)+'" alt="'+esc(m.name)+' exercise demonstration" loading="eager" decoding="async"><small>'+esc(m.source||"Exercise reference")+(m.sourceUrl?' <span>·</span> <a href="'+esc(m.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Source</a>':'')+' <span>·</span> <button data-research="'+id+'" type="button">Find another GIF</button></small>';
     h.dataset.ready="true";h.classList.remove("is-loading");
-    h.querySelector("img")?.addEventListener("error",()=>{h.dataset.ready="false";h.innerHTML='<p class="gif-error">GIF could not load. <button data-retry="'+id+'" type="button">Try again</button></p>';});
-   }catch(e){h.classList.remove("is-loading");h.innerHTML='<p class="gif-error">'+esc(e instanceof Error?e.message:"Demo unavailable.")+' <button data-retry="'+id+'" type="button">Try again</button></p>';}
+    h.querySelector("img")?.addEventListener("error",()=>{h.dataset.ready="false";h.innerHTML='<p class="gif-error">GIF could not load. <button data-retry="'+id+'" type="button">Try again</button> <button data-research="'+id+'" type="button">Find more demos</button></p>';});
+   }catch(e){h.classList.remove("is-loading");h.innerHTML='<p class="gif-error">'+esc(e instanceof Error?e.message:"Demo unavailable.")+' <button data-retry="'+id+'" type="button">Try again</button> <button data-research="'+id+'" type="button">Find more demos</button></p>';}
    finally{button.disabled=false;button.textContent="✓ Demo";button.setAttribute("aria-expanded","true");}return;
   }
   const retry=target.closest<HTMLButtonElement>("[data-retry]");
@@ -156,7 +156,7 @@ if(root&&week&&day&&content){
     const b=await r.json() as {exercises?:ExerciseGif[]},choices=b.exercises||[];if(!choices.length)throw Error("No alternatives found.");
     h.dataset.choices=JSON.stringify(choices);h.dataset.exercise=x.name;
     h.innerHTML='<div class="gif-alternatives"><p>Choose the closest matching movement</p>'+choices.slice(0,4).map((m,i)=>'<button type="button" class="gif-choice" data-choice="'+i+'"><img src="'+esc(m.gifUrl)+'" alt=""><span>'+esc(m.name)+'</span></button>').join("")+'</div>';h.classList.remove("is-loading");
-   }catch(e){h.classList.remove("is-loading");h.innerHTML='<p class="gif-error">'+esc(e instanceof Error?e.message:"Search failed.")+' <button data-retry="'+id+'" type="button">Try again</button></p>';}return;
+   }catch(e){h.classList.remove("is-loading");h.innerHTML='<p class="gif-error">'+esc(e instanceof Error?e.message:"Search failed.")+' <button data-retry="'+id+'" type="button">Try again</button> <button data-research="'+id+'" type="button">Find more demos</button></p>';}return;
   }
   const choice=target.closest<HTMLButtonElement>("[data-choice]");
   if(choice){
