@@ -118,6 +118,8 @@ const days = [
   </AppChrome>
 
   <script>
+    import "../scripts/two-week-routine";
+
     const daySelect = document.getElementById("routine-day") as HTMLSelectElement | null;
     const weekSelect = document.getElementById("routine-week") as HTMLSelectElement | null;
     const stories = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-story-day]"));

@@ -2,6 +2,12 @@
 
 Git commits are the authoritative record of exact source changes.
 
+## 2026-11-27 — Fix: home routine feed rendered empty
+
+- `src/pages/index.astro` had lost `import "../scripts/two-week-routine"` during the redesign. `#routine-content` is populated only by that script, so the home page showed no workouts at all. The hardcoded two-week dumbbell routine, its form cues and the custom-demo controls were never deleted — only the import was missing.
+- Restored the import and recorded the dependency in the `AGENTS.md` interface contracts so a future redesign cannot drop it silently.
+- Verified: `npm run check` (0 errors, 0 warnings, 0 hints), `npm run build` (success), and the built home-page chunk `index.astro_astro_type_script_index_0_lang.*.js` now contains the routine data. Dev server returned HTTP 200 for `/` with `#two-week-routine`, `#routine-week`, `#routine-day` and `#routine-content` present. No browser click-through or screenshot pass was performed.
+
 ## 2026-11-27 — Instagram-inspired interface, cleanup and agent docs
 
 - Replaced the dark green theme with one Instagram-inspired design system in `src/styles/app.css`: hairline borders, 8–14px cards, gradient avatar/story rings, blue primary actions, system type with a script wordmark, and automatic light/dark tokens.
@@ -13,7 +19,7 @@ Git commits are the authoritative record of exact source changes.
 - Removed unused TrackCake leftovers: `api/estimate.ts`, `api/food-image.ts`, `api/provider-status.ts`, `lib/nutrition-research.ts`, the unused 2,748-line `styles/global.css`, and the burger-drawer script.
 - Renamed the Android Java source directory to `com/aravindsasok/calkie` to match its declared package.
 - Added `CLAUDE.md` and `.github/copilot-instructions.md` pointing at `AGENTS.md`; expanded `AGENTS.md` with the repository snapshot, expanded source map, DOM contracts, interface rules, environment notes and a UI definition of done.
-- Verified: `npm run check` (0 errors, 0 warnings, 0 hints), `npm run build` (success), dev server returned HTTP 200 for `/`, `/workout-builder`, `/timer`, `/signin` and `/signup` with the expected IDs and chrome markup present. No browser click-through or visual screenshot pass was performed.
+- Verified: `npm run check` (0 errors, 0 warnings, 0 hints), `npm run build` (success), dev server returned HTTP 200 for `/`, `/workout-builder`, `/timer`, `/signin` and `/signup` with the expected IDs and chrome markup present. No browser click-through or visual screenshot pass was performed. (Correction: this batch dropped the home page's routine-script import; see the fix entry above.)
 
 ## 2026-11-25 — Dumbbell-only routine and timer
 
