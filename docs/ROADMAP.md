@@ -62,7 +62,9 @@ Keep the MVP focused. Do not expand scope until the MongoDB-only release is veri
 - [x] Keep ExerciseDB as a fallback when Firecrawl is unavailable or has no matching result.
 - [x] Randomly select among equally relevant matches and show source attribution links.
 - [x] Keep third-party media remote with bounded temporary caches only.
-- [ ] Run type-check and production build.
+- [ ] Run type-check.
+- [x] Production build succeeded on Vercel for commit 23df5be.
 - [ ] Verify routine and builder GIF rendering on mobile and desktop, in light and dark themes.
-- [ ] Verify Vercel deployment and Firecrawl API behavior with/without an API key.
+- [x] Verify Vercel production deployment and Firecrawl API behavior without an API key (HTTP 200 for three exercise searches; invalid short query HTTP 400).
+- [ ] Test Firecrawl API with a configured API key and rate-limit fallback.
 - [ ] Review source-specific reuse licences and hotlink policies before commercial distribution.

@@ -117,3 +117,11 @@ Sequential ExerciseDB GIF preloading is implemented in `src/scripts/workouts.ts`
 - Search results remain in bounded 55-minute server memory and active page memory; third-party GIF bytes are not downloaded or persisted.
 - FIRECRAWL_API_KEY is optional for higher limits and must be configured server-side only.
 - Type-check, build, browser and deployment verification have not yet been run for this change. Third-party image reuse rights remain a separate licensing requirement.
+
+## Firecrawl GIF production verification — 2026-11-27
+
+- Production deployment for commit 23df5be09dbe254305350c287e38a8bed75a9bf1 is READY.
+- Vercel ran npm run build successfully (deployment dpl_2yzc8i2GmwKqW7SnHL46zH2UWn4j).
+- Production smoke tests: / and /workout-builder returned HTTP 200; /api/exercises?search=dumbbell lateral raise, push-ups and face pulls returned HTTP 200 with Firecrawl image results; a one-character query returned HTTP 400 as expected.
+- Firecrawl image search worked without FIRECRAWL_API_KEY in this smoke test. Add the key server-side only if higher rate limits are needed.
+- npm run check and interactive visual/browser testing have not been run. Source-specific image reuse rights remain unverified.

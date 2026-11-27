@@ -105,3 +105,10 @@ For detailed code history, inspect https://github.com/AravindSAsok/cal-Kie/commi
 - Added optional server-side FIRECRAWL_API_KEY documentation. Third-party GIFs are still loaded directly and are not downloaded or persisted.
 - Live Firecrawl tool search confirmed image results include direct imageUrl, title, dimensions and source page URL. This is not a substitute for testing the app API endpoint.
 - Not yet verified: npm check/build, browser rendering, production deployment, or source-specific image reuse licences.
+
+## 2026-11-27 — Production verification
+
+- Vercel production deployment for 23df5be is READY and npm run build completed successfully.
+- Home and workout-builder smoke tests returned HTTP 200.
+- Firecrawl image API smoke tests for dumbbell lateral raise, push-ups and face pulls returned HTTP 200 with GIF candidates; invalid short query returned HTTP 400.
+- Firecrawl worked without an API key in the test. npm run check, interactive browser rendering and source-specific licensing checks remain pending.

@@ -52,3 +52,11 @@ The free ExerciseDB API's temporary-cache restriction is handled by short-lived,
 - Server cache remains bounded to 200 queries and 55 minutes; the browser page cache is temporary. GIF bytes are not downloaded, proxied or persisted.
 - Live Firecrawl image-search tool test returned direct GIF URLs and source pages for dumbbell lateral raise. The app endpoint, type-check, build, browser display and production deployment have not yet been verified.
 - Image search does not grant copyright or hotlink permission. Confirm each selected source's licence before commercial distribution.
+
+## Production verification — 2026-11-27
+
+- Vercel deployment for commit 23df5be is READY; the remote npm run build succeeded.
+- Production home and workout-builder routes returned HTTP 200.
+- Production /api/exercises returned Firecrawl image results for dumbbell lateral raise, push-ups and face pulls (HTTP 200). Invalid one-character query returned HTTP 400.
+- Firecrawl succeeded without FIRECRAWL_API_KEY in this test; key remains optional for higher limits.
+- Not yet performed: npm run check, visual UI test on mobile/desktop, actual image decode/load verification for every result, or licence/hotlink clearance.

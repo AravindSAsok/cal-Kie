@@ -126,3 +126,12 @@ Do not claim cloud authentication/persistence passed until deployed MongoDB conn
 - Checks not yet run: npm run check, npm run build, 375px/desktop browser review, light/dark review, console check, and deployed Firecrawl endpoint smoke test.
 - Deployment is not yet verified. Confirm Vercel deployment status and add FIRECRAWL_API_KEY to Vercel only if a higher Firecrawl rate limit is needed.
 - Licensing blocker: image search source attribution does not grant reuse permission. Review each source's licence and hotlink terms before commercial distribution.
+
+## Production verification update — 2026-11-27
+
+- Latest code commit: 23df5be09dbe254305350c287e38a8bed75a9bf1 (external GIF/source URL validation).
+- Production deployment: READY — https://cal-kie.vercel.app/ (Vercel deployment dpl_2yzc8i2GmwKqW7SnHL46zH2UWn4j).
+- Vercel npm run build completed successfully.
+- Smoke tests passed: Home and /workout-builder return HTTP 200; API queries for dumbbell lateral raise, push-ups and face pulls return HTTP 200 and Firecrawl results; short invalid query returns HTTP 400.
+- Firecrawl worked without FIRECRAWL_API_KEY in this test; add a server-side key only if needed for higher limits.
+- Still pending: npm run check, visual browser testing at mobile/desktop sizes and light/dark themes, image load checks across providers, and licence/hotlink review for each source. Do not claim full visual QA or commercial media clearance.
