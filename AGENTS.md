@@ -52,6 +52,7 @@ Cal-Kie is a simple personal AI workout-week planner. Keep the prototype focused
 
 ## Git and release rules
 
+- Owner standing instruction: always push to `main`. Never leave a local-only commit, and never ask whether to push — push in the same batch as the commit.
 - Work directly on main for user-authorised release batches.
 - Complete implementation, docs and available verification before committing.
 - Do not create intermediate commits or pushes during a release batch.
