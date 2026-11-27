@@ -18,7 +18,7 @@ let currentConfig: Config | null = null;
 let toastTimer = 0;
 
 // Exercise GIFs are looked up and decoded one at a time in workout order.
-type ExerciseDemo = { name: string; gifUrl: string };
+type ExerciseDemo = { name: string; gifUrl: string; source?: string; sourceUrl?: string };
 const demoLookups = new Map<string, Promise<ExerciseDemo | null>>();
 const queuedDemoKeys = new Set<string>();
 const demoPreloadQueue: string[] = [];
@@ -113,17 +113,18 @@ const OTHER_GEAR = new Set(["barbell","cable","machine","kettlebell","band","smi
 function bestExerciseMatch<T extends { name: string }>(name: string, list: T[]): T | null {
   const want = matchWords(name), wantSet = new Set(want);
   if (!want.length) return null;
-  let best: T | null = null, bestScore = Infinity, bestLength = Infinity;
+  let bestScore = Infinity, bestLength = Infinity;
+  const candidates: T[] = [];
   for (const item of list) {
     const have = new Set(matchWords(item.name));
     if (!want.every(word => have.has(word))) continue;
     const offGear = [...have].filter(word => OTHER_GEAR.has(word) && !wantSet.has(word)).length;
     const score = offGear * 1000 + (have.size - want.length) * 10;
     if (score < bestScore || (score === bestScore && item.name.length < bestLength)) {
-      best = item; bestScore = score; bestLength = item.name.length;
-    }
+      bestScore = score; bestLength = item.name.length; candidates.length = 0; candidates.push(item);
+    } else if (score === bestScore && item.name.length === bestLength) candidates.push(item);
   }
-  return best;
+  return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
 }
 
 async function getExerciseDemo(exerciseName: string): Promise<ExerciseDemo | null> {
@@ -200,7 +201,7 @@ async function loadDemo(dayIndex:number, exerciseIndex:number) {
   try {
     const match = await getExerciseDemo(exercise.name);
     if (!match) throw new Error("No GIF found for this exercise.");
-    holder.innerHTML = `<img src="${esc(match.gifUrl)}" alt="${esc(match.name)} demonstration" loading="eager" decoding="async" referrerpolicy="no-referrer" /><div class="demo-credit">Demo: ${esc(match.name)} · ExerciseDB by AscendAPI</div>`;
+    holder.innerHTML = `<img src="${esc(match.gifUrl)}" alt="${esc(match.name)} demonstration" loading="eager" decoding="async" referrerpolicy="no-referrer" /><div class="demo-credit">Demo: ${esc(match.name)} · ${esc(match.source || "Exercise reference")}${match.sourceUrl ? ` · <a href="${esc(match.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source</a>` : ""}</div>`;
     holder.dataset.loaded = "true";
   } catch (error) {
     holder.textContent = error instanceof Error ? error.message : "Demo unavailable right now.";
