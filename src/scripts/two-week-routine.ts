@@ -67,10 +67,16 @@ type CustomGif={id:string;exerciseName:string;source:"url"|"upload";gifUrl:strin
 if(root&&week&&day&&content){
  const weekControl=week!,dayControl=day!,contentRoot=content!;
  const cache=new Map<string,{promise:Promise<ExerciseGif|null>;expiresAt:number}>();
- const customGifs=new Map<string,CustomGif>();let current=0;
+ const customGifs=new Map<string,CustomGif>(),selectedGifs=new Map<string,ExerciseGif>();let current=0;
  const cacheTtlMs=55*60*1000;
- fetch("/api/exercise-gifs",{credentials:"same-origin"}).then(async r=>{if(!r.ok)return null;return r.json() as Promise<{gifs?:CustomGif[]}>;}).then(body=>{for(const item of body?.gifs||[])customGifs.set(key(item.exerciseName),item);}).catch(()=>{});
  const key=(v:string)=>v.toLowerCase().replace(/[^a-z0-9 ]/g,"").trim();
+ const selectedStorageKey="calkie.routine.selected-gifs";
+ function persistSelectedGifs(){try{localStorage.setItem(selectedStorageKey,JSON.stringify(Object.fromEntries(selectedGifs)));}catch{/* Keep the current selection usable if device storage is unavailable. */}}
+ try{
+  const saved=JSON.parse(localStorage.getItem(selectedStorageKey)||"{}") as Record<string,ExerciseGif>;
+  for(const [exerciseKey,item] of Object.entries(saved)){if(item&&typeof item.name==="string"&&typeof item.gifUrl==="string"&&/^https:\/\//i.test(item.gifUrl))selectedGifs.set(exerciseKey,item);}
+ }catch{/* Ignore malformed or unavailable local storage. */}
+ fetch("/api/exercise-gifs",{credentials:"same-origin"}).then(async r=>{if(!r.ok)return null;return r.json() as Promise<{gifs?:CustomGif[]}>;}).then(body=>{for(const item of body?.gifs||[])customGifs.set(key(item.exerciseName),item);}).catch(()=>{});
  const escapes:Record<string,string>={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"};
  const esc=(v:string)=>v.replace(/[&<>"']/g,c=>escapes[c]||c);
  const matchWords=(v:string)=>v.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).map(w=>w.length>2&&w.endsWith("s")&&!w.endsWith("ss")?w.slice(0,-1):w).map(w=>w==="chest"?"bench":w);
@@ -84,6 +90,7 @@ if(root&&week&&day&&content){
  }
  async function gif(name:string,refresh=false):Promise<ExerciseGif|null>{
   const k=key(name),custom=customGifs.get(k);if(custom)return {name:custom.exerciseName,gifUrl:custom.gifUrl};
+  const selected=selectedGifs.get(k);if(selected&&!refresh)return selected;
   const existing=cache.get(k);
   if(!refresh&&existing&&existing.expiresAt>Date.now())return existing.promise;
   if(existing)cache.delete(k);
@@ -126,7 +133,7 @@ if(root&&week&&day&&content){
   if(customRemove){
    const id=customRemove.dataset.customRemove;if(!id)return;const [gi,ei]=id.split("-").map(Number),x=routine[current].groups[gi]?.items[ei];if(!x)return;
    customRemove.disabled=true;
-   try{const response=await fetch("/api/exercise-gifs",{method:"DELETE",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({exerciseName:x.name})});const result=await response.json() as {error?:string};if(!response.ok)throw new Error(response.status===401?"Please sign in to remove your saved demo.":result.error||"Could not remove this demo.");customGifs.delete(key(x.name));cache.delete(key(x.name));const h=document.getElementById("routine-gif-"+id);if(h){h.dataset.ready="false";h.className="routine-gif";h.innerHTML="";}const form=document.getElementById("routine-custom-"+id);if(form?.querySelector("small"))form.querySelector("small")!.textContent="Saved demo removed.";}
+   try{const response=await fetch("/api/exercise-gifs",{method:"DELETE",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({exerciseName:x.name})});const result=await response.json() as {error?:string};if(!response.ok)throw new Error(response.status===401?"Please sign in to remove your saved demo.":result.error||"Could not remove this demo.");customGifs.delete(key(x.name));selectedGifs.delete(key(x.name));persistSelectedGifs();cache.delete(key(x.name));const h=document.getElementById("routine-gif-"+id);if(h){h.dataset.ready="false";h.className="routine-gif";h.innerHTML="";}const form=document.getElementById("routine-custom-"+id);if(form?.querySelector("small"))form.querySelector("small")!.textContent="Saved demo removed.";}
    catch(error){const form=document.getElementById("routine-custom-"+id);if(form?.querySelector("small"))form.querySelector("small")!.textContent=error instanceof Error?error.message:"Could not remove this demo.";}
    finally{customRemove.disabled=false;}return;
   }
@@ -163,8 +170,10 @@ if(root&&week&&day&&content){
    const h=choice.closest<HTMLElement>(".routine-gif");if(!h)return;const choices=JSON.parse(h.dataset.choices||"[]") as ExerciseGif[],m=choices[Number(choice.dataset.choice)];if(!m)return;
    choice.disabled=true;
    const k=key(h.dataset.exercise||"");
+   selectedGifs.set(k,m);persistSelectedGifs();
    cache.set(k,{promise:Promise.resolve(m),expiresAt:Date.now()+cacheTtlMs});
-   h.innerHTML='<img src="'+esc(m.gifUrl)+'" alt="'+esc(m.name)+' exercise demonstration"><small>Selected for this session · '+esc(m.source||"Exercise reference")+(m.sourceUrl?' · <a href="'+esc(m.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Source</a>':'')+'</small>';
+   h.innerHTML='<img src="'+esc(m.gifUrl)+'" alt="'+esc(m.name)+' exercise demonstration"><small>Selected and saved on this device · '+esc(m.source||"Exercise reference")+(m.sourceUrl?' · <a href="'+esc(m.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Source</a>':'')+'</small>';
+   h.querySelector("img")?.addEventListener("error",()=>{selectedGifs.delete(k);persistSelectedGifs();cache.delete(k);h.dataset.ready="false";h.innerHTML='<p class="gif-error">This saved GIF is no longer available. <button data-research="'+(h.id.replace("routine-gif-",""))+'" type="button">Find more demos</button></p>';});
    h.dataset.ready="true";
   }
  });
