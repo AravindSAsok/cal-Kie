@@ -108,3 +108,12 @@ Sequential ExerciseDB GIF preloading is implemented in `src/scripts/workouts.ts`
 | Markup contracts | `#routine-content`, `#generator-form`, `#week-grid`, `[data-account-slot]` and the countdown/stopwatch/interval IDs all present |
 | Browser click-through / screenshots | Not performed — visual review still needed at 375px and ≥1280px in both themes |
 | Production DB | Unchanged blocker: `MONGODB_URI` still not configured in Vercel Production |
+
+## Firecrawl exercise GIF discovery — 2026-11-27
+
+- /api/exercises now searches Firecrawl image results first using the v2 Search API, requiring direct HTTPS GIF URLs and all normalised exercise-name tokens in the result title.
+- ExerciseDB remains the fallback when Firecrawl is unavailable or has no matching GIF.
+- Routine and workout-builder matching randomly selects among equally relevant matches; source credit and source-page links are displayed when returned.
+- Search results remain in bounded 55-minute server memory and active page memory; third-party GIF bytes are not downloaded or persisted.
+- FIRECRAWL_API_KEY is optional for higher limits and must be configured server-side only.
+- Type-check, build, browser and deployment verification have not yet been run for this change. Third-party image reuse rights remain a separate licensing requirement.

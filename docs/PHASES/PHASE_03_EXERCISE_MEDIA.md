@@ -41,3 +41,14 @@ Search for exercise demonstrations only when requested and display remote Exerci
 ## Cache compliance update — 2026-11-25
 
 The free ExerciseDB API's temporary-cache restriction is handled by short-lived, non-persistent caches only. Server cache entries expire after 55 minutes and are bounded to 200 searches. The browser's page-memory cache also expires after 55 minutes, while API search responses are privately cacheable for at most one hour. The application does not store the GIF binary, search metadata, or replacement choice in MongoDB, localStorage, IndexedDB, Cache Storage, or a service worker. The GIF itself continues to load directly from the provider's media host.
+
+## Firecrawl image-search update — 2026-11-27
+
+- Scope now includes Firecrawl image search as the preferred GIF discovery source, with ExerciseDB fallback.
+- Firecrawl search uses POST https://api.firecrawl.dev/v2/search with sources: ["images"], a GIF-focused query and a bounded result count.
+- The API accepts only direct HTTPS .gif URLs and requires every normalised requested exercise-name token to appear in the image result title. The UI randomly selects among equally relevant candidates.
+- Source attribution and source-page links are displayed where available. ExerciseDB by AscendAPI attribution remains visible for fallback results.
+- FIRECRAWL_API_KEY is optional for higher limits and is server-side only.
+- Server cache remains bounded to 200 queries and 55 minutes; the browser page cache is temporary. GIF bytes are not downloaded, proxied or persisted.
+- Live Firecrawl image-search tool test returned direct GIF URLs and source pages for dumbbell lateral raise. The app endpoint, type-check, build, browser display and production deployment have not yet been verified.
+- Image search does not grant copyright or hotlink permission. Confirm each selected source's licence before commercial distribution.

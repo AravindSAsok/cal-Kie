@@ -115,3 +115,14 @@ Do not claim cloud authentication/persistence passed until deployed MongoDB conn
 - Deleted as dead code: `api/estimate.ts`, `api/food-image.ts`, `api/provider-status.ts`, `lib/nutrition-research.ts`, `styles/global.css`, `scripts/navigation.ts`.
 - Checks run: `npm run check` and `npm run build` both pass; all five pages return HTTP 200 from the dev server. No visual/browser review was done, so treat the look as unverified until someone opens it at 375px and ≥1280px in light and dark.
 - Next: visual review, then dependency/lockfile repair (`npm ci` fails on `ajv` drift), then the standing `MONGODB_URI` production blocker.
+
+## Firecrawl GIF search update — 2026-11-27
+
+- Latest implementation commits are on main; verify current HEAD before further work.
+- /api/exercises calls Firecrawl v2 image search first and falls back to ExerciseDB if the request fails or no strict title-matched direct GIF URL is returned.
+- The API requires HTTPS direct GIF URLs and all normalised exercise-name tokens in the image title. The two UI scripts randomly select among equally ranked candidates and display source attribution/link when available.
+- FIRECRAWL_API_KEY is optional, configured only as a server environment variable for higher limits. It is documented in .env.example and README.
+- Third-party GIFs are still loaded directly from their source hosts. No media binaries or provider metadata are persisted; server/page caches are temporary.
+- Checks not yet run: npm run check, npm run build, 375px/desktop browser review, light/dark review, console check, and deployed Firecrawl endpoint smoke test.
+- Deployment is not yet verified. Confirm Vercel deployment status and add FIRECRAWL_API_KEY to Vercel only if a higher Firecrawl rate limit is needed.
+- Licensing blocker: image search source attribution does not grant reuse permission. Review each source's licence and hotlink terms before commercial distribution.

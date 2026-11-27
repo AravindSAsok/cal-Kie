@@ -95,3 +95,13 @@ For detailed code history, inspect https://github.com/AravindSAsok/cal-Kie/commi
 - Workout GIFs now preload one at a time in workout order after a plan renders.
 - Exercise lookup requests and image decoding are shared with button clicks, avoiding duplicate requests; a ready GIF can display immediately.
 - GIFs remain remote and are not downloaded or persisted; ExerciseDB attribution remains visible.
+
+## 2026-11-27 — Firecrawl-first random exercise GIF discovery
+
+- Added Firecrawl v2 image search to /api/exercises, querying for exercise-specific animated GIFs.
+- Filtered results to direct HTTPS GIF URLs and required every normalised exercise-name token to appear in the result title to reduce unrelated movements.
+- Kept ExerciseDB as fallback when Firecrawl is unavailable or no suitable image result is returned.
+- Updated the two-week routine and AI workout builder to randomly select among equally relevant candidates and show source credit plus a source-page link when available.
+- Added optional server-side FIRECRAWL_API_KEY documentation. Third-party GIFs are still loaded directly and are not downloaded or persisted.
+- Live Firecrawl tool search confirmed image results include direct imageUrl, title, dimensions and source page URL. This is not a substitute for testing the app API endpoint.
+- Not yet verified: npm check/build, browser rendering, production deployment, or source-specific image reuse licences.

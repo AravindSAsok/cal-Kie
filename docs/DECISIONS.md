@@ -31,3 +31,9 @@
 - Generate seven-day plans that respect user preferences and recovery.
 - Fetch remote exercise GIFs only on demand; do not persist media.
 - Keep the MVP focused on workout planning, editing, regeneration and persistence.
+
+## 2026-11-27 — Firecrawl-first exercise GIF discovery
+
+- Context: ExerciseDB fuzzy search and provider throttling caused incorrect or missing exercise demonstrations.
+- Decision: Use Firecrawl image search first for direct GIF assets, require strict exercise-token coverage in the result title, and fall back to ExerciseDB when Firecrawl has no usable result or is unavailable. Randomly choose among equally relevant results.
+- Consequence: Source attribution and source-page links are shown when available. Third-party media remains remote and temporary search metadata is cached in memory only. Attribution is not a licence; each source's reuse and hotlink terms must be reviewed.

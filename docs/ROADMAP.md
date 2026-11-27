@@ -54,3 +54,15 @@ Keep the MVP focused. Do not expand scope until the MongoDB-only release is veri
 - [x] Add top-bar Timer navigation from Home and Workout Builder.
 - [x] Add countdown, stopwatch with laps, and configurable interval timer.
 - [ ] Verify type-check/build and browser behavior after deployment.
+
+## Phase 7 — Firecrawl exercise GIF discovery
+
+- [x] Add Firecrawl image search as the preferred GIF discovery provider.
+- [x] Require exact exercise-token coverage and direct HTTPS GIF URLs.
+- [x] Keep ExerciseDB as a fallback when Firecrawl is unavailable or has no matching result.
+- [x] Randomly select among equally relevant matches and show source attribution links.
+- [x] Keep third-party media remote with bounded temporary caches only.
+- [ ] Run type-check and production build.
+- [ ] Verify routine and builder GIF rendering on mobile and desktop, in light and dark themes.
+- [ ] Verify Vercel deployment and Firecrawl API behavior with/without an API key.
+- [ ] Review source-specific reuse licences and hotlink policies before commercial distribution.

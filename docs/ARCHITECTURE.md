@@ -73,3 +73,12 @@ Never use public prefixes for secrets.
 ## Sequential exercise media preload — 2026-11-19
 
 Exercise GIFs are queued after a workout renders and processed one at a time in day/exercise order. Each remote image is decoded before the next lookup starts. A View GIF click reuses the same in-flight lookup/cache. Media remains remote and is not downloaded or stored; visible AscendAPI attribution is retained.
+
+## Firecrawl image discovery — 2026-11-27
+
+- /api/exercises calls Firecrawl v2 Search with the images source and a GIF-focused query. It accepts only direct HTTPS .gif image URLs and requires every normalised exercise-name token to appear in the image result title.
+- Firecrawl search failure or no acceptable match falls back to the existing ExerciseDB search. ExerciseDB's allowed media host remains enforced.
+- Server result cache is bounded to 200 queries and 55 minutes. Browser page caches remain temporary; GIF bytes are loaded directly by the browser and are never proxied or persisted.
+- UI matching randomly chooses among equally relevant candidates and displays provider/source links where available.
+- FIRECRAWL_API_KEY is optional, server-side only, and must never be exposed to browser code.
+- Search results are third-party assets: source links do not grant reuse rights. Verify each asset's licence and hotlink terms before commercial use.
