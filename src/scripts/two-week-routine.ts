@@ -148,7 +148,7 @@ if(root&&week&&day&&content){
     const m=await gif(x.name);if(!m)throw Error("No matching demo found.");
     h.innerHTML='<img src="'+esc(m.gifUrl)+'" alt="'+esc(m.name)+' exercise demonstration" loading="eager" decoding="async"><small>'+esc(m.source||"Exercise reference")+(m.sourceUrl?' <span>·</span> <a href="'+esc(m.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Source</a>':'')+' <span>·</span> <button data-research="'+id+'" type="button">Find another GIF</button></small>';
     h.dataset.ready="true";h.classList.remove("is-loading");
-    h.querySelector("img")?.addEventListener("error",()=>{h.dataset.ready="false";h.innerHTML='<p class="gif-error">GIF could not load. <button data-retry="'+id+'" type="button">Try again</button> <button data-research="'+id+'" type="button">Find more demos</button></p>';});
+    h.querySelector("img")?.addEventListener("error",()=>{const k=key(x.name);selectedGifs.delete(k);persistSelectedGifs();cache.delete(k);h.dataset.ready="false";h.innerHTML='<p class="gif-error">GIF could not load. <button data-retry="'+id+'" type="button">Try again</button> <button data-research="'+id+'" type="button">Find more demos</button></p>';});
    }catch(e){h.classList.remove("is-loading");h.innerHTML='<p class="gif-error">'+esc(e instanceof Error?e.message:"Demo unavailable.")+' <button data-retry="'+id+'" type="button">Try again</button> <button data-research="'+id+'" type="button">Find more demos</button></p>';}
    finally{button.disabled=false;button.textContent="✓ Demo";button.setAttribute("aria-expanded","true");}return;
   }
