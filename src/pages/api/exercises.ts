@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { isIP } from "node:net";
 
 export const prerender = false;
 
@@ -30,8 +31,8 @@ const allowedExerciseDb = (value: string) => {
 const allowedGif = (value: string) => {
   try {
     const url = new URL(value);
-    return url.protocol === "https:" && url.port === "" &&
-      !["localhost", "127.0.0.1", "::1"].includes(url.hostname) &&
+    return url.protocol === "https:" && url.port === "" && !url.username && !url.password &&
+      !["localhost"].includes(url.hostname) && !isIP(url.hostname.replace(/^\[|\]$/g, "")) &&
       (/\.gif$/i.test(url.pathname) || /[?&](?:format|fm)=gif(?:&|$)/i.test(url.search));
   } catch {
     return false;
@@ -41,6 +42,17 @@ const allowedGif = (value: string) => {
 const norm = (value: string) => value.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 const tokens = (value: string) => norm(value).split(" ").filter(Boolean)
   .map(word => word.length > 2 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word);
+
+const safeSourceUrl = (value?: string) => {
+  if (!value) return undefined;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" || url.username || url.password || isIP(url.hostname.replace(/^\[|\]$/g, ""))) return undefined;
+    return url.toString();
+  } catch {
+    return undefined;
+  }
+};
 
 function getCached(key: string): ExerciseGif[] | null {
   const entry = exerciseCache.get(key);
@@ -103,7 +115,8 @@ async function searchFirecrawl(query: string): Promise<ExerciseGif[]> {
     // No fuzzy substitution: every requested movement/equipment term must appear in the result title.
     if (!wanted.length || !wanted.every(token => available.has(token))) return [];
     seen.add(gifUrl);
-    return [{ name, gifUrl, source: "Firecrawl image search", ...(item.url ? { sourceUrl: item.url } : {}) }];
+    const sourceUrl = safeSourceUrl(item.url);
+    return [{ name, gifUrl, source: "Firecrawl image search", ...(sourceUrl ? { sourceUrl } : {}) }];
   });
   return shuffle(matches).slice(0, 8);
 }
