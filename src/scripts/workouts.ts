@@ -103,6 +103,29 @@ async function regenerateDay(dayIndex: number) {
     result.day.date = plan.days[dayIndex].date; plan.days[dayIndex] = result.day; render(); status.textContent = plan.days[dayIndex].dayName + " updated.";
   } catch (error) { status.textContent = error instanceof Error ? error.message : "Could not rebuild this day."; status.classList.add("error"); }
 }
+const matchWords = (value: string) => value.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean)
+  .map(word => word.length > 2 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word)
+  .map(word => word === "chest" ? "bench" : word);
+
+const OTHER_GEAR = new Set(["barbell","cable","machine","kettlebell","band","smith","landmine","plate","medicine","stability","bosu","suspension","resistance"]);
+
+/** Every word of the requested name must appear in the candidate, so a demo is never swapped for an unrelated movement. */
+function bestExerciseMatch<T extends { name: string }>(name: string, list: T[]): T | null {
+  const want = matchWords(name), wantSet = new Set(want);
+  if (!want.length) return null;
+  let best: T | null = null, bestScore = Infinity, bestLength = Infinity;
+  for (const item of list) {
+    const have = new Set(matchWords(item.name));
+    if (!want.every(word => have.has(word))) continue;
+    const offGear = [...have].filter(word => OTHER_GEAR.has(word) && !wantSet.has(word)).length;
+    const score = offGear * 1000 + (have.size - want.length) * 10;
+    if (score < bestScore || (score === bestScore && item.name.length < bestLength)) {
+      best = item; bestScore = score; bestLength = item.name.length;
+    }
+  }
+  return best;
+}
+
 async function getExerciseDemo(exerciseName: string): Promise<ExerciseDemo | null> {
   const key = demoKey(exerciseName);
   const existing = demoLookups.get(key);
@@ -113,7 +136,7 @@ async function getExerciseDemo(exerciseName: string): Promise<ExerciseDemo | nul
     if (!response.ok) throw new Error("Exercise reference search is unavailable.");
     const body = await response.json() as { exercises?: ExerciseDemo[] };
     const results = body.exercises || [];
-    const match = results.find(item => demoKey(item.name) === key);
+    const match = bestExerciseMatch(exerciseName, results);
     if (!match) return null;
 
     // Decode the remote GIF before marking it as ready for instant display.

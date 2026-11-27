@@ -47,17 +47,38 @@ function setCached(key: string, exercises: ExerciseGif[]) {
   exerciseCache.set(key, { exercises, expiresAt: Date.now() + CACHE_TTL_MS });
 }
 
+const SEARCH_ATTEMPTS = 3;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function search(query: string): Promise<ExerciseGif[]> {
-  const response = await fetch(
-    "https://oss.exercisedb.dev/api/v1/exercises/search?search=" + encodeURIComponent(query),
-    { headers: { Accept: "application/json" }, cache: "no-store" }
-  );
-  if (!response.ok) throw new Error("Exercise reference search unavailable.");
-  const body = await response.json() as { data?: Array<{ name?: string; gifUrl?: string }> };
-  return (Array.isArray(body.data) ? body.data : [])
-    .filter((item) => typeof item.name === "string" && typeof item.gifUrl === "string" && allowed(item.gifUrl))
-    .slice(0, 8)
-    .map((item) => ({ name: item.name!, gifUrl: item.gifUrl! }));
+  const endpoint =
+    "https://oss.exercisedb.dev/api/v1/exercises/search?search=" + encodeURIComponent(query);
+  let lastError: unknown = new Error("Exercise reference search unavailable.");
+
+  // The free provider throttles bursts (Cloudflare 1102, returned as plain text),
+  // so a single failed request must not fail the whole demo lookup.
+  for (let attempt = 0; attempt < SEARCH_ATTEMPTS; attempt++) {
+    try {
+      const response = await fetch(endpoint, {
+        headers: { Accept: "application/json" },
+        cache: "no-store"
+      });
+      const body = await response.json() as {
+        success?: boolean;
+        data?: Array<{ name?: string; gifUrl?: string }>;
+      };
+      if (!response.ok || body?.success === false) throw new Error("Exercise reference search unavailable.");
+      return (Array.isArray(body.data) ? body.data : [])
+        .filter((item) => typeof item.name === "string" && typeof item.gifUrl === "string" && allowed(item.gifUrl))
+        .slice(0, 12)
+        .map((item) => ({ name: item.name!, gifUrl: item.gifUrl! }));
+    } catch (error) {
+      lastError = error;
+      if (attempt < SEARCH_ATTEMPTS - 1) await sleep(350 * (attempt + 1));
+    }
+  }
+
+  throw lastError;
 }
 
 export const GET: APIRoute = async ({ url }) => {

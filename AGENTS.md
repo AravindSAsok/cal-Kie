@@ -68,7 +68,7 @@ Cal-Kie is a simple personal AI workout-week planner. Keep the prototype focused
 - MongoDB authentication and session: src/lib/auth.ts, src/lib/server-auth.ts
 - Account endpoints: src/pages/api/auth/signup.ts, login.ts, logout.ts, me.ts
 - Workout generation and persistence: src/pages/api/workout-plan.ts
-- Exercise lookup (provider, temporary cache only): src/pages/api/exercises.ts
+- Exercise lookup (provider, temporary cache only): src/pages/api/exercises.ts — retries up to 3 times with backoff because the free provider rate-limits bursts (Cloudflare `error code: 1102`, sometimes as plain text rather than JSON).
 - User-owned exercise demos (list/read/URL/upload/delete): src/pages/api/exercise-gifs.ts
 - Workout persistence client (cloud first, local cache fallback): src/lib/workout-store.ts
 - Legacy TrackCake routes kept for compatibility and unreferenced by the Cal-Kie UI: src/pages/api/estimate.ts, src/pages/api/food-image.ts, src/pages/api/provider-status.ts with src/lib/nutrition-research.ts. Do not delete them during a UI change and do not wire them into new work.
@@ -110,7 +110,7 @@ State current phase, latest commit, what changed, checks/results, blockers, exac
 5. For URL input: accept HTTPS only, reject embedded credentials, local/private destinations, IP literals and ExerciseDB hosts. Do not server-fetch the URL. The browser loads the supplied URL directly.
 6. For uploads: accept only GIF, PNG, JPEG and WEBP; maximum 4 MB; verify both declared MIME type and magic bytes. Reject SVG and all other content. Keep uploaded bytes in MongoDB BSON binary, never in a public static folder.
 7. Serve uploaded bytes from the API only after authenticating and checking both owner userId and record id. Use the stored MIME type, X-Content-Type-Options: nosniff and private no-store caching.
-8. UI order: a user's saved custom demo first; otherwise use the existing strict ExerciseDB name match. Never fall back to an unrelated first ExerciseDB result. Removing a custom demo clears the session cache so ExerciseDB lookup can run again.
+8. UI order: a user's saved custom demo first; otherwise match ExerciseDB names with `bestMatch` (routine) / `bestExerciseMatch` (builder): compare singularised word sets, require every word of the requested exercise to appear in the candidate (`chest` reads as `bench`), and prefer the candidate with the fewest extra words. Never fall back to an unrelated first ExerciseDB result. Removing a custom demo clears the session cache so ExerciseDB lookup can run again.
 9. Provide both URL and upload controls beside every two-week routine exercise. Show save/remove errors honestly; never show success until the API confirms the write.
 10. Update the phase record, project status, handoff and changelog. Run type-check/build when an environment is available; otherwise explicitly mark them unverified.
 11. One user-authorized release batch means one commit and one push to main after reviewing all changed files. Do not push intermediate changes.

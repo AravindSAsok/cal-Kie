@@ -73,6 +73,15 @@ if(root&&week&&day&&content){
  const key=(v:string)=>v.toLowerCase().replace(/[^a-z0-9 ]/g,"").trim();
  const escapes:Record<string,string>={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"};
  const esc=(v:string)=>v.replace(/[&<>"']/g,c=>escapes[c]||c);
+ const matchWords=(v:string)=>v.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).map(w=>w.length>2&&w.endsWith("s")&&!w.endsWith("ss")?w.slice(0,-1):w).map(w=>w==="chest"?"bench":w);
+ const otherGear=new Set(["barbell","cable","machine","kettlebell","band","smith","landmine","plate","medicine","stability","bosu","suspension","resistance"]);
+ // Every word of the routine name must appear in the candidate, so a demo is never swapped for an unrelated movement.
+ function bestMatch(name:string,list:ExerciseGif[]):ExerciseGif|null{
+  const want=matchWords(name),wantSet=new Set(want);if(!want.length)return null;
+  let best:ExerciseGif|null=null,bestScore=Infinity,bestLength=Infinity;
+  for(const item of list){const have=new Set(matchWords(item.name));if(!want.every(w=>have.has(w)))continue;const offGear=[...have].filter(w=>otherGear.has(w)&&!wantSet.has(w)).length,score=offGear*1000+(have.size-want.length)*10;if(score<bestScore||(score===bestScore&&item.name.length<bestLength)){best=item;bestScore=score;bestLength=item.name.length;}}
+  return best;
+ }
  async function gif(name:string,refresh=false):Promise<ExerciseGif|null>{
   const k=key(name),custom=customGifs.get(k);if(custom)return {name:custom.exerciseName,gifUrl:custom.gifUrl};
   const existing=cache.get(k);
@@ -80,7 +89,7 @@ if(root&&week&&day&&content){
   if(existing)cache.delete(k);
   const request=fetch("/api/exercises?search="+encodeURIComponent(name)+(refresh?"&refresh=1":""),{credentials:"same-origin"})
    .then(async r=>{if(!r.ok)throw Error("GIF search is unavailable.");return r.json();})
-   .then((b:{exercises?:ExerciseGif[]})=>(b.exercises||[]).find(x=>key(x.name)===k)||null);
+   .then((b:{exercises?:ExerciseGif[]})=>bestMatch(name,b.exercises||[]));
   cache.set(k,{promise:request,expiresAt:Date.now()+cacheTtlMs});
   try{return await request;}catch(e){cache.delete(k);throw e;}
  }

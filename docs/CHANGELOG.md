@@ -2,6 +2,14 @@
 
 Git commits are the authoritative record of exact source changes.
 
+## 2026-11-27 — Fix: exercise demo GIFs not loading
+
+- Cause 1 — name matching: the routine and builder scripts required an exact normalised name match on ExerciseDB results, but the provider's search is fuzzy and ranked. None of the 48 routine exercise names matched exactly ("Dumbbell chest press" returns "dumbbell bench press"), so almost every lookup ended in "No matching demo found."
+- Cause 2 — rate limiting: the free provider throttles bursts with Cloudflare `error code: 1102`, sometimes as plain text instead of JSON. `/api/exercises` treated that as a hard failure and returned 502, which the UI showed as "GIF search is unavailable."
+- Fix (matching): new `bestMatch` / `bestExerciseMatch` compare singularised word sets, require every word of the requested exercise to appear in the candidate so a demo is never swapped for an unrelated movement, read `chest` as `bench`, and prefer dumbbell/bodyweight candidates over barbell/cable/machine ones.
+- Fix (provider): `/api/exercises` retries up to 3 times with backoff, treats `success:false` and non-JSON throttling bodies as retryable, and returns up to 12 candidates so the best match is in range.
+- Verified: live `/api/exercises` returned HTTP 200 with candidate lists for Push-ups, Lateral raises and Goblet squat; the matcher resolved 14 of 15 representative routine names against those real candidate lists (face pulls have no provider equivalent and now fail honestly instead of showing an unrelated GIF). `npm run check` 0 errors/0 warnings/0 hints, `npm run build` success. No rendered browser check was performed.
+
 ## 2026-11-27 — Style-only guarantees restored
 
 - Restored `src/pages/api/estimate.ts`, `src/pages/api/food-image.ts`, `src/pages/api/provider-status.ts` and `src/lib/nutrition-research.ts`, which the redesign had deleted. They are unreferenced legacy routes, but deleting them still changed the deployed API surface.
