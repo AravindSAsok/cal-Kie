@@ -62,7 +62,7 @@ const root=document.getElementById("two-week-routine");
 const week=document.getElementById("routine-week") as HTMLSelectElement|null;
 const day=document.getElementById("routine-day") as HTMLSelectElement|null;
 const content=document.getElementById("routine-content") as HTMLDivElement|null;
-type ExerciseGif={name:string;gifUrl:string};
+type ExerciseGif={name:string;gifUrl:string;source?:string;sourceUrl?:string};
 type CustomGif={id:string;exerciseName:string;source:"url"|"upload";gifUrl:string};
 if(root&&week&&day&&content){
  const weekControl=week!,dayControl=day!,contentRoot=content!;
@@ -78,9 +78,9 @@ if(root&&week&&day&&content){
  // Every word of the routine name must appear in the candidate, so a demo is never swapped for an unrelated movement.
  function bestMatch(name:string,list:ExerciseGif[]):ExerciseGif|null{
   const want=matchWords(name),wantSet=new Set(want);if(!want.length)return null;
-  let best:ExerciseGif|null=null,bestScore=Infinity,bestLength=Infinity;
-  for(const item of list){const have=new Set(matchWords(item.name));if(!want.every(w=>have.has(w)))continue;const offGear=[...have].filter(w=>otherGear.has(w)&&!wantSet.has(w)).length,score=offGear*1000+(have.size-want.length)*10;if(score<bestScore||(score===bestScore&&item.name.length<bestLength)){best=item;bestScore=score;bestLength=item.name.length;}}
-  return best;
+  let bestScore=Infinity,bestLength=Infinity;const candidates:ExerciseGif[]=[];
+  for(const item of list){const have=new Set(matchWords(item.name));if(!want.every(w=>have.has(w)))continue;const offGear=[...have].filter(w=>otherGear.has(w)&&!wantSet.has(w)).length,score=offGear*1000+(have.size-want.length)*10;if(score<bestScore||(score===bestScore&&item.name.length<bestLength)){bestScore=score;bestLength=item.name.length;candidates.length=0;candidates.push(item);}else if(score===bestScore&&item.name.length===bestLength)candidates.push(item);}
+  return candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:null;
  }
  async function gif(name:string,refresh=false):Promise<ExerciseGif|null>{
   const k=key(name),custom=customGifs.get(k);if(custom)return {name:custom.exerciseName,gifUrl:custom.gifUrl};
@@ -139,7 +139,7 @@ if(root&&week&&day&&content){
    h.innerHTML='<div class="gif-skeleton"><span class="gif-spinner"></span><span>Finding your exercise demo…</span></div>';
    try{
     const m=await gif(x.name);if(!m)throw Error("No matching demo found.");
-    h.innerHTML='<img src="'+esc(m.gifUrl)+'" alt="'+esc(m.name)+' exercise demonstration" loading="eager" decoding="async"><small>ExerciseDB by AscendAPI <span>·</span> <button data-research="'+id+'" type="button">Find another GIF</button></small>';
+    h.innerHTML='<img src="'+esc(m.gifUrl)+'" alt="'+esc(m.name)+' exercise demonstration" loading="eager" decoding="async"><small>'+'<${esc(m.source||"Exercise reference")}'+(m.sourceUrl?' <span>·</span> <a href="'+esc(m.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Source</a>':'')+' <span>·</span> <button data-research="'+id+'" type="button">Find another GIF</button></small>';
     h.dataset.ready="true";h.classList.remove("is-loading");
     h.querySelector("img")?.addEventListener("error",()=>{h.dataset.ready="false";h.innerHTML='<p class="gif-error">GIF could not load. <button data-retry="'+id+'" type="button">Try again</button></p>';});
    }catch(e){h.classList.remove("is-loading");h.innerHTML='<p class="gif-error">'+esc(e instanceof Error?e.message:"Demo unavailable.")+' <button data-retry="'+id+'" type="button">Try again</button></p>';}
@@ -164,7 +164,7 @@ if(root&&week&&day&&content){
    choice.disabled=true;
    const k=key(h.dataset.exercise||"");
    cache.set(k,{promise:Promise.resolve(m),expiresAt:Date.now()+cacheTtlMs});
-   h.innerHTML='<img src="'+esc(m.gifUrl)+'" alt="'+esc(m.name)+' exercise demonstration"><small>Selected for this session · ExerciseDB by AscendAPI</small>';
+   h.innerHTML='<img src="'+esc(m.gifUrl)+'" alt="'+esc(m.name)+' exercise demonstration"><small>Selected for this session · ${esc(m.source||"Exercise reference")}${m.sourceUrl?' · <a href="'+esc(m.sourceUrl)+'" target="_blank" rel="noopener noreferrer">Source</a>':''}</small>';
    h.dataset.ready="true";
   }
  });
