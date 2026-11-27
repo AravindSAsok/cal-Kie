@@ -2,6 +2,15 @@
 
 This is the mandatory entry point for every human or AI agent working in this repository.
 
+## Repository at a glance (updated 2026-11-27)
+
+- Repository: github.com/AravindSAsok/cal-Kie · branch `main` · production https://cal-kie.vercel.app/
+- Astro 7 + TypeScript. Vercel adapter by default; the standalone Node adapter is used only when `CALKIE_HOST=render` is set at build time. Node 22.23.4.
+- Pages: `/` (profile header, day stories, two-week routine feed), `/workout-builder` (AI preferences + editable week), `/timer`, `/signin`, `/signup`.
+- API: `/api/auth/*`, `/api/workout-plan` (POST generates, GET/PUT/DELETE persist), `/api/exercises` (provider lookup), `/api/exercise-gifs` (user-owned demos).
+- MongoDB collections: `users`, `auth_sessions`, `workout_plans`, `exercise_gifs`. No other datastore, no SQL, no external auth provider.
+- Interface: Instagram-inspired visual system (see "Interface system" below). It is a look only — no likes, follows, comments, other users' feeds, DMs or analytics.
+
 ## Start every session
 
 1. Read this file.
@@ -53,17 +62,37 @@ Cal-Kie is a simple personal AI workout-week planner. Keep the prototype focused
 
 ## Source map
 
-- Main UI: src/pages/index.astro
-- Account UI: src/scripts/account.ts
-- Workout interactions: src/scripts/workouts.ts
+### Server and data
 - MongoDB connection: src/lib/mongodb.ts
-- MongoDB authentication: src/lib/auth.ts
-- Workout persistence client: src/lib/workout-store.ts
-- Account endpoints: src/pages/api/auth/
+- MongoDB authentication and session: src/lib/auth.ts, src/lib/server-auth.ts
+- Account endpoints: src/pages/api/auth/signup.ts, login.ts, logout.ts, me.ts
 - Workout generation and persistence: src/pages/api/workout-plan.ts
-- Exercise lookup: src/pages/api/exercises.ts
-- User-owned exercise demos (URL/upload/read/delete): src/pages/api/exercise-gifs.ts
-- Two-week routine custom demo controls: src/scripts/two-week-routine.ts
+- Exercise lookup (provider, temporary cache only): src/pages/api/exercises.ts
+- User-owned exercise demos (list/read/URL/upload/delete): src/pages/api/exercise-gifs.ts
+- Workout persistence client (cloud first, local cache fallback): src/lib/workout-store.ts
+
+### Interface
+- Design system — the single stylesheet: src/styles/app.css
+- Shared chrome (left rail, top bar, bottom tab bar, skip link): src/components/AppChrome.astro
+- Document shell: src/layouts/Layout.astro
+- Home: src/pages/index.astro
+- Workout builder: src/pages/workout-builder.astro
+- Timer screen: src/pages/timer.astro
+- Auth screens: src/pages/signin.astro, src/pages/signup.astro
+- Account module and signed-in auth-page state: src/scripts/account.ts
+- Two-week routine render and custom demo controls: src/scripts/two-week-routine.ts
+- AI week render/edit interactions: src/scripts/workouts.ts
+- Timer logic: src/scripts/timer.ts
+
+## Interface contracts — do not break
+
+Page scripts query these IDs directly; renaming or removing one silently breaks the UI. Keep them in the markup even if the design changes.
+
+- Home: `#two-week-routine`, `#routine-week`, `#routine-day`, `#routine-content`, plus `[data-story-day]` buttons that write `#routine-day` and dispatch a `change` event.
+- Builder: `#generator-form`, `#duration`, `#exercise-count`, `#training-days`, `#goal`, `#level`, `#equipment`, `#focus`, `#generate-plan`, `#generator-status`, `#save-plan`, `#regenerate-week`, `#week-grid`, `#week-empty`, `#week-title`, `#week-subtitle`, `#summary-days`, `#summary-sessions`, `#summary-minutes`, `#toast`.
+- Timer: every `#countdown-*`, `#stopwatch-*`, `#interval-*`, `#lap-*`, `#timer-sound` control, plus `[data-mode]`, `[data-preset]` and `[data-interval-preset]` buttons.
+- Chrome: `[data-account-slot]` is where src/scripts/account.ts mounts the account module; `[data-auth-page]` is the auth card that the same script replaces when a session already exists.
+- Classes emitted by scripts and styled in app.css: `.day-card`, `.exercise-card`, `.routine-exercise*`, `.gif-*`, `.demo-*`. If you edit a script template, update app.css in the same change.
 
 ## Required handoff
 
@@ -89,6 +118,36 @@ State current phase, latest commit, what changed, checks/results, blockers, exac
 
 - The owner's hardcoded routine is dumbbells plus bodyweight only. Do not add resistance-band exercises or band-dependent movements to `src/scripts/two-week-routine.ts`; use a practical dumbbell/bodyweight substitute and write exercise-specific form cues. Keep the routine's cue-coverage guard intact.
 - The workout-builder equipment choices must not offer resistance bands. The default home option is dumbbells and bodyweight. AI generation prompts must not prescribe bands; prefer dumbbell or bodyweight alternatives.
-- The shared top-bar Timer shortcut on Home and Workout Builder must link to `/timer`. Keep the dedicated timer screen self-contained and usable without authentication or database access.
+- Every standard page must render `src/components/AppChrome.astro` with the correct `active` key (home | builder | timer) so the rail and tab bar highlight the current section.
+- The Timer shortcut on Home and Workout Builder must link to `/timer`. Keep the dedicated timer screen self-contained and usable without authentication or database access.
 - Timer screen acceptance: countdown supports editable minutes/seconds, quick presets, start/pause/reset and completion sound; stopwatch supports start/pause/reset and lap splits; interval timer supports configurable rounds/work/rest, presets, phase transitions, progress and reset. Use deadline-based timing so background-tab throttling does not accumulate drift. Sound is optional and must not block timer use.
 - Keep timer controls accessible, responsive and keyboard-operable. Do not add server APIs, persistence, tracking or account requirements for the timer unless explicitly requested.
+
+## Interface system (Instagram-inspired)
+
+Design intent: a calm, familiar social-app shell around a serious training tool. Instagram informs the *look* only — hairline borders, 8–14px cards, system type with a script wordmark, gradient avatar rings, blue primary actions, a bottom tab bar on mobile and a left rail on desktop. It must never introduce social mechanics: no likes, follows, comments, other users' feeds, DMs, activity notifications or engagement tracking.
+
+Rules:
+
+1. All styling lives in `src/styles/app.css`. Do not add per-page `<style>` blocks or inline layout styles; they drift and duplicate. (`font`/`display` design decisions belong in the stylesheet.)
+2. Use the existing tokens: `--bg`, `--bg-elev`, `--bg-soft`, `--line`, `--text`, `--text-soft`, `--muted`, `--blue`, `--grad`, `--radius`, `--radius-lg`. Light and dark are both supported through `prefers-color-scheme` — check both before shipping.
+3. Reuse the primitives instead of inventing parallel ones: `.ig-card`, `.aside-card`, `.ig-btn` / `.ig-btn-primary` / `.ig-btn-text`, `.field`, `.story*`, `.timer-*`, `.toast`, `.section-head`, `.eyebrow`.
+4. Every interactive control needs a visible `:focus-visible` state, a label (text or `aria-label`), and at least a 44px touch target on mobile. Async state changes announce through `aria-live`.
+5. Motion must respect `prefers-reduced-motion`. Never rely on animation to convey state.
+6. Phone layout is the reference: one column, fixed bottom tab bar, no horizontal scrolling except the story row. Content padding must clear the tab bar and the iOS safe area.
+7. The routine feed and week feed are single-column on purpose. Do not turn them into dense multi-column grids; that breaks the reading rhythm the redesign is built on.
+8. Keep copy plain and honest. Status text reports what the API actually returned; never show a success message before the write is confirmed.
+
+## Known environment notes
+
+- `npm ci` currently fails because `package-lock.json` is out of sync with `package.json` (`ajv@6.15.0` vs `ajv@8.20.0`, `json-schema-traverse`). Use `npm install --no-audit --no-fund --package-lock=false` to install locally without rewriting the lockfile. Only regenerate the lockfile as part of an explicit dependency-maintenance task — never to "fix" a build.
+- The app builds without `MONGODB_URI`; account and cloud-save endpoints return 503 and the planner falls back to the local browser copy. Never claim cloud persistence works without a configured database.
+- Production Vercel currently has `MONGODB_DB_NAME=hulksar` but no `MONGODB_URI`. This is the standing blocker for accounts in production.
+
+## Definition of done for a UI change
+
+1. `npm run check` passes with 0 errors.
+2. `npm run build` succeeds.
+3. The changed pages were opened at 375px and at ≥1280px, in light and dark, with the console clean.
+4. If a script-emitted class changed, app.css was updated in the same change.
+5. Docs updated: this file if a rule changed, plus `docs/CHANGELOG.md` and `docs/PROJECT_STATUS.md`.

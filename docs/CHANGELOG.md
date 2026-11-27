@@ -2,6 +2,19 @@
 
 Git commits are the authoritative record of exact source changes.
 
+## 2026-11-27 — Instagram-inspired interface, cleanup and agent docs
+
+- Replaced the dark green theme with one Instagram-inspired design system in `src/styles/app.css`: hairline borders, 8–14px cards, gradient avatar/story rings, blue primary actions, system type with a script wordmark, and automatic light/dark tokens.
+- Added `src/components/AppChrome.astro`: desktop left rail, mobile top bar, fixed bottom tab bar, skip link, accessible active states. Every standard page now shares it.
+- Home is now a profile header plus seven day "stories" that drive the two-week routine, which renders as a single-column post feed with numbered form cues.
+- Workout Builder is a create screen: an Instagram-style preference card and the editable week as feed cards, with the same generation/persistence behaviour.
+- Timer, sign-in and sign-up rebuilt on the same system. Signed-in visitors to `/signin` or `/signup` see their session and a log-out action instead of an empty form.
+- `src/scripts/account.ts` rewritten to mount an avatar-based account module into `[data-account-slot]` and to keep sign-out honest.
+- Removed unused TrackCake leftovers: `api/estimate.ts`, `api/food-image.ts`, `api/provider-status.ts`, `lib/nutrition-research.ts`, the unused 2,748-line `styles/global.css`, and the burger-drawer script.
+- Renamed the Android Java source directory to `com/aravindsasok/calkie` to match its declared package.
+- Added `CLAUDE.md` and `.github/copilot-instructions.md` pointing at `AGENTS.md`; expanded `AGENTS.md` with the repository snapshot, expanded source map, DOM contracts, interface rules, environment notes and a UI definition of done.
+- Verified: `npm run check` (0 errors, 0 warnings, 0 hints), `npm run build` (success), dev server returned HTTP 200 for `/`, `/workout-builder`, `/timer`, `/signin` and `/signup` with the expected IDs and chrome markup present. No browser click-through or visual screenshot pass was performed.
+
 ## 2026-11-25 — Dumbbell-only routine and timer
 
 - Replaced the hardcoded band-based Pallof press with Dumbbell plank drag and movement-specific instructions.

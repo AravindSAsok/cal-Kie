@@ -104,3 +104,14 @@ Do not claim cloud authentication/persistence passed until deployed MongoDB conn
 - Changed files include the routine, builder, AI prompt, home, new timer page/script, AGENTS.md and project docs.
 - Source-level routine validation passed. No local install, type-check, production build or browser test was run as part of the GitHub-only edit; check Vercel after the single push.
 - Existing production MongoDB blocker remains: account/custom-demo persistence requires the authorized `MONGODB_URI`; timer functionality does not depend on MongoDB.
+
+## Instagram-inspired interface — 2026-11-27
+
+- Read `AGENTS.md` sections "Interface contracts — do not break" and "Interface system" before editing any page.
+- Styling lives only in `src/styles/app.css`; every page renders `src/components/AppChrome.astro` with `active="home" | "builder" | "timer"`.
+- Home: profile header → day stories (`[data-story-day]` drives `#routine-day`) → routine feed rendered by `src/scripts/two-week-routine.ts`.
+- Builder and timer keep every original element ID; only the surrounding design changed.
+- `src/scripts/account.ts` mounts into `[data-account-slot]` and replaces `[data-auth-page]` content when a session exists.
+- Deleted as dead code: `api/estimate.ts`, `api/food-image.ts`, `api/provider-status.ts`, `lib/nutrition-research.ts`, `styles/global.css`, `scripts/navigation.ts`.
+- Checks run: `npm run check` and `npm run build` both pass; all five pages return HTTP 200 from the dev server. No visual/browser review was done, so treat the look as unverified until someone opens it at 375px and ≥1280px in light and dark.
+- Next: visual review, then dependency/lockfile repair (`npm ci` fails on `ajv` drift), then the standing `MONGODB_URI` production blocker.

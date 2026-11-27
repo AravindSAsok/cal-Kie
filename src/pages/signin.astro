@@ -1,4 +1,33 @@
 ---
 import Layout from "../layouts/Layout.astro";
 ---
-<Layout title="Sign in to Cal-Kie"><main class="auth-page"><a class="brand" href="/"><span class="brand-mark">CK</span><span>cal<span class="brand-accent">-kie</span></span></a><section class="auth-card"><p class="eyebrow">YOUR CAL-KIE ACCOUNT</p><h1>Welcome back</h1><p class="auth-description">Sign in to access your saved workout plans.</p><form id="auth-form" data-mode="signin"><label class="account-field">Email address<input name="email" type="email" autocomplete="email" maxlength="254" required placeholder="you@example.com"></label><label class="account-field">Password<input name="password" type="password" autocomplete="current-password" minlength="8" maxlength="128" required placeholder="At least 8 characters"></label><button class="button button-primary auth-submit" type="submit">Sign in</button><p id="auth-status" class="auth-status" role="status" aria-live="polite"></p></form><p class="auth-switch">New to Cal-Kie? <a href="/signup">Create an account</a></p><a href="/">← Back to workout planner</a></section></main><script>import "../scripts/auth-page";</script></Layout>
+
+<Layout title="Sign in — Cal-Kie" description="Sign in to sync your workout weeks with your Cal-Kie account.">
+  <main class="auth-page">
+    <a class="auth-brand" href="/" aria-label="Cal-Kie home">Cal-kie</a>
+    <section class="auth-card" data-auth-page aria-labelledby="auth-title">
+      <h1 id="auth-title">Welcome back</h1>
+      <p class="auth-description">Sign in to load your saved workout weeks on any device.</p>
+      <form id="auth-form" data-mode="signin">
+        <label class="account-field">
+          Email address
+          <input name="email" type="email" autocomplete="email" maxlength="254" required placeholder="you@example.com" />
+        </label>
+        <label class="account-field">
+          Password
+          <input name="password" type="password" autocomplete="current-password" minlength="8" maxlength="128" required placeholder="At least 8 characters" />
+        </label>
+        <button class="ig-btn ig-btn-primary auth-submit" type="submit">Sign in</button>
+        <p id="auth-status" class="auth-status" role="status" aria-live="polite"></p>
+      </form>
+      <p class="auth-switch">New to Cal-Kie? <a href="/signup">Create an account</a></p>
+      <a class="auth-back" href="/">← Back to your training plan</a>
+    </section>
+    <p class="auth-legal">
+      Cal-Kie keeps your plans in your own account. Exercise demos are provider-hosted or saved by you.
+    </p>
+  </main>
+  <script>
+    import "../scripts/auth-page";
+  </script>
+</Layout>

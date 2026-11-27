@@ -1,0 +1,87 @@
+---
+interface Props {
+  active?: "home" | "builder" | "timer";
+}
+
+const { active = "home" } = Astro.props;
+
+const icons: Record<string, string> = {
+  home: '<path d="M3.5 10.7 12 3.6l8.5 7.1"/><path d="M5.6 9.6V20h12.8V9.6"/>',
+  plus: '<rect x="3.4" y="3.4" width="17.2" height="17.2" rx="5"/><path d="M12 8.2v7.6M8.2 12h7.6"/>',
+  clock: '<circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3.3 2"/>',
+  grid: '<rect x="3.4" y="3.4" width="7.2" height="7.2" rx="2"/><rect x="13.4" y="3.4" width="7.2" height="7.2" rx="2"/><rect x="3.4" y="13.4" width="7.2" height="7.2" rx="2"/><rect x="13.4" y="13.4" width="7.2" height="7.2" rx="2"/>',
+  user: '<circle cx="12" cy="8.2" r="3.7"/><path d="M4.9 20c.7-3.6 3.6-5.6 7.1-5.6s6.4 2 7.1 5.6"/>'
+};
+
+const nav = [
+  { key: "home", href: "/", label: "Home", icon: "home" },
+  { key: "builder", href: "/workout-builder", label: "Generate", icon: "plus" },
+  { key: "timer", href: "/timer", label: "Timer", icon: "clock" },
+  { key: "routine", href: "/#two-week-routine", label: "Routine", icon: "grid" },
+  { key: "account", href: "/signin", label: "Account", icon: "user" }
+];
+
+const hasAside = Astro.slots.has("aside");
+---
+
+<div class="ig-shell">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <aside class="ig-rail" aria-label="Main navigation">
+    <a class="ig-logo" href="/" aria-label="Cal-Kie home">
+      <span class="ig-logo-short" aria-hidden="true">ck</span>
+      <span class="ig-logo-full">Cal-kie</span>
+    </a>
+    <nav class="ig-rail-nav">
+      {nav.map((item) => (
+        <a
+          class:list={["ig-rail-link", { "is-active": item.key === active }]}
+          href={item.href}
+          aria-current={item.key === active ? "page" : undefined}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons[item.icon]} />
+          <span class="ig-rail-label">{item.label}</span>
+        </a>
+      ))}
+    </nav>
+    <div class="ig-rail-foot">
+      <div data-account-slot></div>
+    </div>
+  </aside>
+
+  <header class="ig-topbar">
+    <a class="ig-logo" href="/" aria-label="Cal-Kie home">Cal-kie</a>
+    <div class="ig-topbar-actions">
+      <a class="ig-icon-btn" href="/workout-builder" aria-label="Generate a workout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons.plus} />
+      </a>
+      <a class="ig-icon-btn" href="/timer" aria-label="Open the timer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons.clock} />
+      </a>
+    </div>
+  </header>
+
+  <div class:list={["ig-frame", { "has-aside": hasAside }]}>
+    <main class="ig-main" id="main-content">
+      <slot />
+    </main>
+    {hasAside && (
+      <aside class="ig-aside" aria-label="Account and shortcuts">
+        <slot name="aside" />
+      </aside>
+    )}
+  </div>
+
+  <nav class="ig-tabbar" aria-label="Main navigation">
+    {nav.map((item) => (
+      <a
+        class:list={["ig-tab", { "is-active": item.key === active }]}
+        href={item.href}
+        aria-current={item.key === active ? "page" : undefined}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons[item.icon]} />
+        <span class="ig-tab-label">{item.label}</span>
+      </a>
+    ))}
+  </nav>
+</div>

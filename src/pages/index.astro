@@ -1,18 +1,148 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import AppChrome from "../components/AppChrome.astro";
+
+const days = [
+  { short: "Mon", full: "Monday", code: "MO" },
+  { short: "Tue", full: "Tuesday", code: "TU" },
+  { short: "Wed", full: "Wednesday", code: "WE" },
+  { short: "Thu", full: "Thursday", code: "TH" },
+  { short: "Fri", full: "Friday", code: "FR" },
+  { short: "Sat", full: "Saturday", code: "SA" },
+  { short: "Sun", full: "Sunday", code: "SU" }
+];
 ---
+
 <Layout title="Cal-Kie — Your week, your workout">
-<div class="app-shell">
-<header class="topbar"><a class="brand" href="/" aria-label="Cal-Kie home"><span class="brand-mark">CK</span><span>cal<span class="brand-accent">-kie</span></span></a><div class="topbar-right"><a href="/timer" aria-label="Open timer" style="display:inline-flex;align-items:center;gap:7px;padding:10px 13px;border:1px solid #596d4a;border-radius:11px;background:#202d24;color:#c6f36b;text-decoration:none;font-size:12px;font-weight:800;white-space:nowrap">⏱ Timer</a><span class="live-label"><i></i> YOUR PERSONAL TRAINING SPACE</span><button class="button button-menu" id="menu-toggle" type="button" aria-controls="app-menu" aria-expanded="false" aria-label="Open navigation menu"><span></span><span></span><span></span></button></div></header>
-<button class="menu-backdrop" id="menu-backdrop" type="button" aria-label="Close navigation menu" hidden></button>
-<aside class="app-menu" id="app-menu" role="dialog" aria-modal="true" aria-label="Main navigation" hidden><div class="app-menu-head"><span>YOUR SPACE</span><button class="menu-close" id="menu-close" type="button" aria-label="Close menu">×</button></div><a class="app-menu-link active" href="/"><span>⌂</span><span><strong>Home</strong><small>Your training space</small></span></a><a class="app-menu-link" href="/timer"><span>⏱</span><span><strong>Timer</strong><small>Countdown, stopwatch and intervals</small></span></a><a class="app-menu-link app-menu-primary" href="/workout-builder"><span>✦</span><span><strong>Generate Workout</strong><small>Build a week around your goals</small></span><span class="menu-arrow">→</span></a></aside>
-<main class="page">
-<section class="hero"><div class="hero-copy"><p class="eyebrow">MOVE WITH A PLAN</p><h1>Your week.<br/><em>Your kind of strong.</em></h1><p class="hero-text">Build a workout week around your time, your goals and the way you like to train. Then make every day yours.</p><a class="button button-primary home-builder-link" href="/workout-builder"><span>✦</span> Generate my workout</a></div><div class="hero-stats" aria-label="Workout plan summary"><div><strong>7</strong><span>days planned</span></div><div><strong>5</strong><span>training days</span></div><div><strong>60</strong><span>minutes / session</span></div></div></section>
-<section class="routine-panel" id="two-week-routine"><div class="panel-heading"><div><p class="eyebrow">YOUR TWO-WEEK TRAINING PLAN</p><h2>Push · Legs · Pull · Full Body</h2><p class="routine-intro">Your structured 14-day split with form cues and exercise GIFs.</p></div><div class="routine-selectors"><label>Week<select id="routine-week"><option value="1">Week 1</option><option value="2">Week 2</option></select></label><label>Day<select id="routine-day"><option value="0">Monday</option><option value="1">Tuesday</option><option value="2">Wednesday</option><option value="3">Thursday</option><option value="4">Friday</option><option value="5">Saturday</option><option value="6">Sunday</option></select></label></div></div><div id="routine-content" class="routine-content"></div><p class="routine-footnote">Week 1: practise technique and establish weights. Week 2: improve reps or load only with good form. Repeat for 4–6 weeks and track progress; don't force weekly increases. Core work balances flexion, obliques and deep stability.</p></section>
-<footer class="app-footer"><span>cal-kie · made to move with you</span><span>ExerciseDB demos are fetched on demand and credited to AscendAPI. Your own uploaded or linked exercise demos can be saved to your account.</span></footer>
-</main></div>
-<script>import "../scripts/two-week-routine";</script><script>import "../scripts/navigation";</script>
-<style>
-.routine-panel{margin:34px 0;background:#18231c;border:1px solid #405343;border-radius:22px;padding:26px}.routine-intro,.routine-note{color:#a9b9aa;font-size:11px;line-height:1.6}.routine-selectors{display:flex;gap:10px}.routine-selectors label{display:grid;gap:5px;font-size:10px}.routine-selectors select{background:#111a14;color:#edf4ed;border:1px solid #405143;border-radius:8px;padding:9px}.routine-day-heading{display:flex;justify-content:space-between;gap:16px;margin:22px 0;border-bottom:1px solid #304035;padding-bottom:14px}.routine-day-heading h3{font:700 20px Manrope;margin:0}.routine-group{margin:20px 0}.routine-group h3{font:700 14px Manrope;color:#c6f36b}.routine-exercises{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.routine-exercise{background:#111a14;border:1px solid #304035;border-radius:13px;padding:14px}.routine-exercise-head{display:flex;justify-content:space-between;gap:8px}.routine-exercise h4{font:700 13px Manrope;margin:0}.routine-exercise-head p{font-size:10px;color:#c6f36b}.routine-gif-button,.gif-choice{background:#202d24;border:1px solid #596d4a;color:#c6f36b;border-radius:8px;padding:8px;font-size:10px}.routine-exercise ol{font-size:11px;line-height:1.6;color:#b8c6b8;padding-left:18px}.routine-gif img,.gif-choice img{width:min(100%,240px);max-height:190px;object-fit:contain;background:white;border-radius:8px}.routine-gif small{display:block;color:#9aab9d;font-size:9px;margin-top:6px}.routine-gif small button{background:none;border:0;color:#c6f36b}.gif-choice{display:inline-flex;flex-direction:column;margin:4px}.routine-custom-toggle{display:inline-flex;margin-top:8px;background:transparent;border:1px dashed #596d4a;color:#c6f36b;border-radius:8px;padding:8px 10px;font-size:10px;cursor:pointer}.routine-custom-form{display:grid;gap:9px;margin-top:10px;padding:12px;background:#18231c;border:1px solid #405343;border-radius:10px}.routine-custom-form[hidden]{display:none}.routine-custom-form label{display:grid;gap:5px;color:#c6f36b;font-size:10px}.routine-custom-form input[type=url],.routine-custom-form input[type=file]{width:100%;min-width:0;background:#111a14;color:#edf4ed;border:1px solid #405143;border-radius:7px;padding:9px;font-size:11px}.routine-custom-form span,.routine-custom-form small{font-size:10px;color:#a9b9aa}.routine-custom-actions{display:flex;gap:8px;flex-wrap:wrap}.routine-custom-actions button{background:#c6f36b;color:#142017;border:0;border-radius:7px;padding:8px 12px;font-size:10px;font-weight:700}.routine-custom-actions button[data-custom-remove]{background:#202d24;color:#c6f36b;border:1px solid #596d4a}.routine-special{background:#202d24;padding:18px;border-radius:12px}.routine-special p{font-size:12px;color:#a9b9aa}.routine-footnote{font-size:10px;color:#9aab9d;line-height:1.7}.home-builder-link{display:inline-flex;margin-top:22px;align-items:center;gap:8px}@media(max-width:700px){.routine-exercises{grid-template-columns:1fr}.routine-day-heading{flex-direction:column}.routine-panel{padding:12px}.routine-selectors{width:100%}.routine-selectors label{flex:1}.routine-selectors select{width:100%}}
-</style>
+  <AppChrome active="home">
+    <section class="profile-card" aria-labelledby="profile-name">
+      <div class="profile-avatar">
+        <img src="/images/calkie-bunny.svg" alt="Cal-Kie bunny mascot" width="86" height="86" />
+      </div>
+      <div class="profile-body">
+        <div class="profile-title">
+          <h1 id="profile-name">cal-kie</h1>
+          <a class="ig-btn ig-btn-primary" href="/workout-builder">Generate workout</a>
+          <a class="ig-btn" href="/timer">Timer</a>
+        </div>
+        <ul class="profile-stats">
+          <li><b>7</b>days planned</li>
+          <li><b>5</b>training days</li>
+          <li><b>60</b>min a session</li>
+        </ul>
+        <p class="profile-bio">
+          <strong>Your week. Your kind of strong.</strong>
+          A two-week dumbbell and bodyweight split with form cues and demos, plus an AI builder for a week that fits your life.
+        </p>
+      </div>
+    </section>
+
+    <div class="story-row" role="group" aria-label="Choose a training day">
+      {days.map((day, index) => (
+        <button
+          class:list={["story", { "is-active": index === 0 }]}
+          type="button"
+          data-story-day={index}
+          data-story-name={day.full}
+          aria-pressed={index === 0 ? "true" : "false"}
+        >
+          <span class="story-ring" aria-hidden="true"><span class="story-avatar">{day.code}</span></span>
+          <span class="story-name">{day.short}</span>
+        </button>
+      ))}
+    </div>
+
+    <section class="routine-panel" id="two-week-routine" aria-labelledby="routine-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Two-week plan</p>
+          <h2 id="routine-title">Today's session</h2>
+          <p class="routine-intro">Push · Legs · Pull · Full Body. Tap a day above or pick one here.</p>
+        </div>
+        <div class="routine-selectors">
+          <label>
+            Week
+            <select id="routine-week">
+              <option value="1">Week 1</option>
+              <option value="2">Week 2</option>
+            </select>
+          </label>
+          <label>
+            Day
+            <select id="routine-day">
+              {days.map((day, index) => <option value={index}>{day.full}</option>)}
+            </select>
+          </label>
+        </div>
+      </div>
+      <div id="routine-content" class="routine-content" aria-live="polite"></div>
+      <p class="routine-footnote">
+        Week 1 practises technique and establishes weights. Week 2 adds reps or load only with good form. Repeat for 4–6 weeks and track progress; don't force weekly increases.
+      </p>
+    </section>
+
+    <footer class="ig-footer">
+      cal-kie · made to move with you.
+      ExerciseDB demonstrations are fetched on demand and credited to AscendAPI. Demos you upload or link are saved to your account only.
+    </footer>
+
+    <div slot="aside">
+      <div class="ig-card aside-card" data-account-slot></div>
+      <div class="ig-card aside-card">
+        <p class="aside-title">Quick start</p>
+        <div class="aside-list">
+          <a class="aside-item" href="/workout-builder">
+            <span aria-hidden="true">✦</span>
+            <span>Build my week<small>AI plan in a minute</small></span>
+            <span class="aside-arrow" aria-hidden="true">›</span>
+          </a>
+          <a class="aside-item" href="/timer">
+            <span aria-hidden="true">⏱</span>
+            <span>Start a timer<small>Countdown, laps, intervals</small></span>
+            <span class="aside-arrow" aria-hidden="true">›</span>
+          </a>
+          <a class="aside-item" href="/#two-week-routine">
+            <span aria-hidden="true">▤</span>
+            <span>Two-week routine<small>Push · legs · pull · full body</small></span>
+            <span class="aside-arrow" aria-hidden="true">›</span>
+          </a>
+        </div>
+      </div>
+      <div class="ig-card aside-card">
+        <p class="aside-title">Train with intent</p>
+        <p class="profile-bio" style="margin-top:0">
+          Leave 1–2 reps in reserve, keep rest honest and warm up before your first working set. Cal-Kie offers general fitness guidance, not medical advice.
+        </p>
+      </div>
+    </div>
+  </AppChrome>
+
+  <script>
+    const daySelect = document.getElementById("routine-day") as HTMLSelectElement | null;
+    const weekSelect = document.getElementById("routine-week") as HTMLSelectElement | null;
+    const stories = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-story-day]"));
+
+    const syncStories = () => {
+      const activeDay = Number(daySelect?.value ?? 0);
+      for (const story of stories) {
+        const selected = Number(story.dataset.storyDay) === activeDay;
+        story.classList.toggle("is-active", selected);
+        story.setAttribute("aria-pressed", String(selected));
+      }
+    };
+
+    for (const story of stories) {
+      story.addEventListener("click", () => {
+        if (!daySelect) return;
+        daySelect.value = story.dataset.storyDay || "0";
+        daySelect.dispatchEvent(new Event("change", { bubbles: true }));
+        story.scrollIntoView({ inline: "center", block: "nearest" });
+        requestAnimationFrame(syncStories);
+      });
+    }
+
+    daySelect?.addEventListener("change", () => requestAnimationFrame(syncStories));
+    weekSelect?.addEventListener("change", () => requestAnimationFrame(syncStories));
+    syncStories();
+  </script>
 </Layout>

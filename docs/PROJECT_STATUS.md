@@ -1,6 +1,6 @@
 # Cal-Kie — Project Status
 
-_Last updated: 2026-11-25 after dumbbell-only routine and timer screen update._
+_Last updated: 2026-11-27 after the Instagram-inspired interface redesign and agent documentation update._
 
 ## At a glance
 
@@ -86,3 +86,25 @@ Sequential ExerciseDB GIF preloading is implemented in `src/scripts/workouts.ts`
 - Added a Timer shortcut to the top bar and navigation drawer on Home and Workout Builder.
 - Added `/timer` with countdown presets, stopwatch laps, and configurable work/rest interval rounds. Timer runs client-side, requires no sign-in or database, and uses deadline-based updates plus optional completion sounds.
 - Source-level validation passed for all 14 hardcoded routine days: no band-named exercise remains and every exercise has matching form cues. Type-check/build and browser behavior are pending post-push verification.
+
+## Instagram-inspired UI — 2026-11-27
+
+- One stylesheet now owns the whole interface: `src/styles/app.css`. It replaces `calkie.css` and the unused 2,748-line `global.css`.
+- Shared chrome in `src/components/AppChrome.astro`: left rail at ≥1024px, sticky top bar and fixed bottom tab bar below that, skip link, focus rings and correct `active` states.
+- Home: profile header (mascot avatar, stats, bio) → seven day "stories" → two-week routine as a single-column feed with numbered cues and per-exercise demo actions.
+- Workout Builder: create-style preference card plus the editable week as feed cards. All generation, editing and save IDs/behaviour preserved.
+- Timer and auth screens rebuilt on the same tokens. Signed-in users get a session-aware account card and a log-out action instead of a blank form.
+- Light and dark both come from `prefers-color-scheme`; reduced motion is respected; mobile layout is single column with safe-area padding.
+- Removed the unused TrackCake nutrition/photo/provider routes and library, which AGENTS.md already forbade.
+- Agent documentation: `AGENTS.md` expanded (snapshot, source map, DOM contracts, interface rules, environment notes, UI definition of done); added `CLAUDE.md` and `.github/copilot-instructions.md`.
+
+### Verification evidence (2026-11-27)
+
+| Check | Result |
+|---|---|
+| `npm run check` | 0 errors, 0 warnings, 0 hints |
+| `npm run build` | success, Vercel adapter, 32.5 KB CSS bundle |
+| Dev server pages | `/`, `/workout-builder`, `/timer`, `/signin`, `/signup` all HTTP 200 |
+| Markup contracts | `#routine-content`, `#generator-form`, `#week-grid`, countdown/stopwatch/interval IDs and `[data-auth-page]` all present |
+| Browser click-through / screenshots | Not performed — visual review still needed at 375px and ≥1280px in both themes |
+| Production DB | Unchanged blocker: `MONGODB_URI` still not configured in Vercel Production |

@@ -1,25 +1,159 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import AppChrome from "../components/AppChrome.astro";
 ---
+
 <Layout title="Generate your workout — Cal-Kie" description="Build a personalised seven-day workout plan around your goals and routine.">
-<div class="app-shell">
-<header class="topbar"><a class="brand" href="/" aria-label="Cal-Kie home"><span class="brand-mark">CK</span><span>cal<span class="brand-accent">-kie</span></span></a><div class="topbar-right"><a href="/timer" aria-label="Open timer" style="display:inline-flex;align-items:center;gap:7px;padding:10px 13px;border:1px solid #596d4a;border-radius:11px;background:#202d24;color:#c6f36b;text-decoration:none;font-size:12px;font-weight:800;white-space:nowrap">⏱ Timer</a><span class="live-label"><i></i> YOUR PERSONAL TRAINING SPACE</span><button class="button button-quiet" id="save-plan" type="button" disabled>Save week</button><button class="button button-menu" id="menu-toggle" type="button" aria-controls="app-menu" aria-expanded="false" aria-label="Open navigation menu"><span></span><span></span><span></span></button></div></header>
-<button class="menu-backdrop" id="menu-backdrop" type="button" aria-label="Close navigation menu" hidden></button>
-<aside class="app-menu" id="app-menu" role="dialog" aria-modal="true" aria-label="Main navigation" hidden><div class="app-menu-head"><span>YOUR SPACE</span><button class="menu-close" id="menu-close" type="button" aria-label="Close menu">×</button></div><a class="app-menu-link" href="/"><span>⌂</span><span><strong>Home</strong><small>Your training space</small></span></a><a class="app-menu-link" href="/timer"><span>⏱</span><span><strong>Timer</strong><small>Countdown, stopwatch and intervals</small></span></a><a class="app-menu-link app-menu-primary active" href="/workout-builder"><span>✦</span><span><strong>Generate Workout</strong><small>Build a week around your goals</small></span><span class="menu-arrow">→</span></a></aside>
-<main class="page">
-<section class="hero builder-hero"><div class="hero-copy"><p class="eyebrow">THE PLAN BUILDER</p><h1>Make it fit<br/><em>your life.</em></h1><p class="hero-text">Tell Cal-Kie how you like to train. Your personalised seven-day plan is editable, so you stay in control.</p></div><div class="hero-stats" aria-label="Workout plan summary"><div><strong id="summary-days">7</strong><span>days planned</span></div><div><strong id="summary-sessions">5</strong><span>training days</span></div><div><strong id="summary-minutes">60</strong><span>minutes / session</span></div></div></section>
-<section class="builder-panel" aria-labelledby="builder-title"><div class="panel-heading"><div><p class="eyebrow">YOUR PREFERENCES</p><h2 id="builder-title">Build your workout week.</h2></div><span class="ai-chip"><span>✦</span> AI WEEK BUILDER</span></div>
-<form id="generator-form"><div class="form-grid">
-<label class="field"><span>Session length</span><div class="input-with-unit"><input id="duration" type="number" min="10" max="180" step="5" value="60" required/><span>min</span></div><small>Choose your workout duration</small></label>
-<label class="field"><span>Exercises per session</span><div class="input-with-unit"><input id="exercise-count" type="number" min="2" max="12" value="5" required/><span>moves</span></div><small>How many exercises on active days</small></label>
-<label class="field"><span>Training days</span><select id="training-days"><option value="3">3 days / week</option><option value="4">4 days / week</option><option value="5" selected>5 days / week</option><option value="6">6 days / week</option><option value="7">7 days / week</option></select><small>All seven days are scheduled</small></label>
-<label class="field"><span>Fitness goal</span><select id="goal"><option value="general fitness">General fitness</option><option value="build strength">Build strength</option><option value="muscle growth">Muscle growth</option><option value="fat loss and conditioning">Fat loss &amp; conditioning</option><option value="mobility and flexibility">Mobility &amp; flexibility</option><option value="endurance">Endurance</option></select><small>What are you working towards?</small></label>
-<label class="field"><span>Experience level</span><select id="level"><option value="beginner">Beginner</option><option value="intermediate" selected>Intermediate</option><option value="advanced">Advanced</option></select><small>Keep the plan realistic for you</small></label>
-<label class="field"><span>Equipment</span><select id="equipment"><option value="bodyweight only">Bodyweight only</option><option value="basic home equipment">Basic home equipment</option><option value="full gym equipment">Full gym equipment</option><option value="dumbbells and bodyweight" selected>Dumbbells &amp; bodyweight</option></select><small>Only include equipment you have</small></label>
-<label class="field field-wide"><span>Focus or personal instructions <b>optional</b></span><textarea id="focus" rows="2" maxlength="600" placeholder="e.g. focus on legs and core, avoid jumping, prefer short circuits, protect my recovery days..."></textarea></label>
-</div><div class="builder-footer"><p><span>✦</span> Your plan includes sets, reps, rest and estimated timing. Edit anything afterwards.</p><button class="button button-primary" id="generate-plan" type="submit"><span>✦</span> Generate my 7-day week</button></div></form><p class="status-message" id="generator-status" role="status" aria-live="polite"></p></section>
-<section class="week-section" aria-labelledby="week-title"><div class="week-heading"><div><p class="eyebrow">YOUR TRAINING CALENDAR</p><h2 id="week-title">The week ahead</h2><p class="week-subtitle" id="week-subtitle">Your personalised plan will appear here.</p></div><div class="week-actions"><button class="button button-quiet" id="regenerate-week" type="button" disabled>↻ Regenerate week</button></div></div><div class="week-empty" id="week-empty"><div class="empty-orbit"><span>✦</span></div><h3>Your next seven days start here.</h3><p>Choose your preferences above and let Cal-Kie build a week around you.</p></div><div class="week-grid" id="week-grid"></div></section>
-<footer class="app-footer"><span>cal-kie · made to move with you</span><span>Exercise demonstrations are fetched on demand from ExerciseDB by AscendAPI. Free V1 use is non-commercial; attribution is shown. GIFs are not saved by Cal-Kie.</span></footer>
-</main><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
-<script>import "../scripts/workouts";</script><script>import "../scripts/navigation";</script>
+  <AppChrome active="builder">
+    <section class="profile-card" aria-labelledby="builder-name">
+      <div class="profile-avatar">
+        <img src="/images/calkie-bunny.svg" alt="" width="86" height="86" aria-hidden="true" />
+      </div>
+      <div class="profile-body">
+        <div class="profile-title">
+          <h1 id="builder-name">new plan</h1>
+          <span class="ai-chip"><span aria-hidden="true">✦</span> AI week builder</span>
+        </div>
+        <ul class="profile-stats" aria-label="Plan summary">
+          <li><b id="summary-days">7</b>days planned</li>
+          <li><b id="summary-sessions">5</b>training days</li>
+          <li><b id="summary-minutes">60</b>min a session</li>
+        </ul>
+        <p class="profile-bio">
+          Tell Cal-Kie how you like to train. You get a complete Monday-to-Sunday plan with sets, reps, rest and form cues — then edit anything.
+        </p>
+      </div>
+    </section>
+
+    <section class="builder-panel" aria-labelledby="builder-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Your preferences</p>
+          <h2 id="builder-title">Build your workout week</h2>
+        </div>
+        <button class="ig-btn" id="save-plan" type="button" disabled>Save week</button>
+      </div>
+
+      <form id="generator-form">
+        <div class="form-grid">
+          <label class="field">
+            <span>Session length</span>
+            <div class="input-with-unit">
+              <input id="duration" type="number" min="10" max="180" step="5" value="60" required />
+              <span>min</span>
+            </div>
+            <small>How long each workout should take</small>
+          </label>
+          <label class="field">
+            <span>Exercises per session</span>
+            <div class="input-with-unit">
+              <input id="exercise-count" type="number" min="2" max="12" value="5" required />
+              <span>moves</span>
+            </div>
+            <small>Movements on each active day</small>
+          </label>
+          <label class="field">
+            <span>Training days</span>
+            <select id="training-days">
+              <option value="3">3 days a week</option>
+              <option value="4">4 days a week</option>
+              <option value="5" selected>5 days a week</option>
+              <option value="6">6 days a week</option>
+              <option value="7">7 days a week</option>
+            </select>
+            <small>All seven days are still scheduled</small>
+          </label>
+          <label class="field">
+            <span>Fitness goal</span>
+            <select id="goal">
+              <option value="general fitness">General fitness</option>
+              <option value="build strength">Build strength</option>
+              <option value="muscle growth">Muscle growth</option>
+              <option value="fat loss and conditioning">Fat loss &amp; conditioning</option>
+              <option value="mobility and flexibility">Mobility &amp; flexibility</option>
+              <option value="endurance">Endurance</option>
+            </select>
+            <small>What you're working towards</small>
+          </label>
+          <label class="field">
+            <span>Experience level</span>
+            <select id="level">
+              <option value="beginner">Beginner</option>
+              <option value="intermediate" selected>Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+            <small>Keeps the plan realistic</small>
+          </label>
+          <label class="field">
+            <span>Equipment</span>
+            <select id="equipment">
+              <option value="bodyweight only">Bodyweight only</option>
+              <option value="basic home equipment">Basic home equipment</option>
+              <option value="dumbbells and bodyweight" selected>Dumbbells &amp; bodyweight</option>
+              <option value="full gym equipment">Full gym equipment</option>
+            </select>
+            <small>Only what you actually have</small>
+          </label>
+          <label class="field field-wide">
+            <span>Focus or personal instructions <b>optional</b></span>
+            <textarea id="focus" rows="2" maxlength="600" placeholder="e.g. focus on legs and core, avoid jumping, prefer short circuits, protect my recovery days…"></textarea>
+          </label>
+        </div>
+
+        <div class="builder-footer">
+          <p>Your plan includes sets, reps, rest and timing. Everything stays editable.</p>
+          <button class="ig-btn ig-btn-primary" id="generate-plan" type="submit">✦ Generate my 7-day week</button>
+        </div>
+      </form>
+      <p class="status-message" id="generator-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="week-section" aria-labelledby="week-title">
+      <div class="week-heading">
+        <div>
+          <p class="eyebrow">Your training calendar</p>
+          <h2 id="week-title">The week ahead</h2>
+          <p class="week-subtitle" id="week-subtitle">Your personalised plan will appear here.</p>
+        </div>
+        <div class="week-actions">
+          <button class="ig-btn" id="regenerate-week" type="button" disabled>↻ Regenerate week</button>
+        </div>
+      </div>
+
+      <div class="week-empty" id="week-empty">
+        <div class="empty-orbit" aria-hidden="true"><span>✦</span></div>
+        <h3>Your next seven days start here</h3>
+        <p>Choose your preferences above and let Cal-Kie build a week around you.</p>
+      </div>
+      <div class="week-grid" id="week-grid"></div>
+    </section>
+
+    <footer class="ig-footer">
+      Exercise demonstrations are fetched on demand from ExerciseDB by AscendAPI. Free V1 use is non-commercial; attribution stays visible. Cal-Kie does not store provider GIFs.
+    </footer>
+
+    <div slot="aside">
+      <div class="ig-card aside-card" data-account-slot></div>
+      <div class="ig-card aside-card">
+        <p class="aside-title">How it works</p>
+        <div class="aside-list">
+          <div class="aside-item"><span aria-hidden="true">1</span><span>Set your preferences<small>Time, goal, level, kit</small></span></div>
+          <div class="aside-item"><span aria-hidden="true">2</span><span>Generate the week<small>7 days, balanced recovery</small></span></div>
+          <div class="aside-item"><span aria-hidden="true">3</span><span>Edit and save<small>Syncs to your account</small></span></div>
+        </div>
+      </div>
+      <div class="ig-card aside-card">
+        <p class="aside-title">Good to know</p>
+        <p class="profile-bio" style="margin-top:0">
+          Leave 1–2 reps in reserve and keep rest honest. AI plans are suggestions — adjust anything that doesn't suit your body.
+        </p>
+      </div>
+    </div>
+  </AppChrome>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    import "../scripts/workouts";
+  </script>
 </Layout>
