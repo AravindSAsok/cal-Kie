@@ -71,6 +71,7 @@ Cal-Kie is a simple personal AI workout-week planner. Keep the prototype focused
 - Exercise lookup (provider, temporary cache only): src/pages/api/exercises.ts
 - User-owned exercise demos (list/read/URL/upload/delete): src/pages/api/exercise-gifs.ts
 - Workout persistence client (cloud first, local cache fallback): src/lib/workout-store.ts
+- Legacy TrackCake routes kept for compatibility and unreferenced by the Cal-Kie UI: src/pages/api/estimate.ts, src/pages/api/food-image.ts, src/pages/api/provider-status.ts with src/lib/nutrition-research.ts. Do not delete them during a UI change and do not wire them into new work.
 
 ### Interface
 - Design system — the single stylesheet: src/styles/app.css
@@ -92,7 +93,7 @@ Page scripts query these IDs directly; renaming or removing one silently breaks 
 - Home: `#two-week-routine`, `#routine-week`, `#routine-day`, `#routine-content`, plus `[data-story-day]` buttons that write `#routine-day` and dispatch a `change` event. The home `<script>` block must keep `import "../scripts/two-week-routine"` — `#routine-content` is filled entirely by that script, so dropping the import silently leaves the page with no workouts.
 - Builder: `#generator-form`, `#duration`, `#exercise-count`, `#training-days`, `#goal`, `#level`, `#equipment`, `#focus`, `#generate-plan`, `#generator-status`, `#save-plan`, `#regenerate-week`, `#week-grid`, `#week-empty`, `#week-title`, `#week-subtitle`, `#summary-days`, `#summary-sessions`, `#summary-minutes`, `#toast`.
 - Timer: every `#countdown-*`, `#stopwatch-*`, `#interval-*`, `#lap-*`, `#timer-sound` control, plus `[data-mode]`, `[data-preset]` and `[data-interval-preset]` buttons.
-- Chrome: `[data-account-slot]` is where src/scripts/account.ts mounts the account module; `[data-auth-page]` is the auth card that the same script replaces when a session already exists.
+- Chrome: `[data-account-slot]` is where src/scripts/account.ts mounts the account module. Account logic is unchanged from before the redesign: read `/api/auth/me`, render links or e-mail + Log out, and `location.reload()` after a successful `/api/auth/logout`.
 - Classes emitted by scripts and styled in app.css: `.day-card`, `.exercise-card`, `.routine-exercise*`, `.gif-*`, `.demo-*`. If you edit a script template, update app.css in the same change.
 
 ## Required handoff

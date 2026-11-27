@@ -36,7 +36,7 @@ async function signOut(target: HTMLButtonElement) {
   try {
     const response = await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
     if (!response.ok) throw new Error("Sign out failed.");
-    location.assign("/signin");
+    location.reload();
   } catch {
     target.disabled = false;
     target.textContent = "Log out";
@@ -88,37 +88,6 @@ function renderSlot(slot: HTMLElement, user: AccountUser | null) {
   slot.append(box);
 }
 
-/** Signed-in visitors land on /signin by mistake; show their session instead of a blank form. */
-function renderSignedInNotice(user: AccountUser) {
-  const card = document.querySelector<HTMLElement>("[data-auth-page]");
-  if (!card) return;
-  card.replaceChildren();
-
-  const eyebrow = document.createElement("p");
-  eyebrow.className = "eyebrow";
-  eyebrow.textContent = "You're signed in";
-  const heading = document.createElement("h1");
-  heading.textContent = user.name || "Welcome back";
-  const description = document.createElement("p");
-  description.className = "auth-description";
-  description.textContent = user.email || "Your plans sync with this account.";
-
-  const actions = document.createElement("div");
-  actions.className = "account-actions";
-  actions.append(button("Plan my week", "ig-btn ig-btn-primary", undefined, "/workout-builder"));
-  const out = button("Log out", "ig-btn", () => void signOut(out as HTMLButtonElement));
-  actions.append(out);
-
-  const back = document.createElement("p");
-  back.className = "auth-switch";
-  const backLink = document.createElement("a");
-  backLink.href = "/";
-  backLink.textContent = "Back to your training plan";
-  back.append(backLink);
-
-  card.append(eyebrow, heading, description, actions, back);
-}
-
 async function readUser(): Promise<AccountUser | null> {
   try {
     const response = await fetch("/api/auth/me", { credentials: "same-origin", cache: "no-store" });
@@ -133,5 +102,4 @@ async function readUser(): Promise<AccountUser | null> {
 void (async () => {
   const user = await readUser();
   for (const slot of slots) renderSlot(slot, user);
-  if (user) renderSignedInNotice(user);
 })();

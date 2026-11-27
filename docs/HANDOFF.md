@@ -111,7 +111,7 @@ Do not claim cloud authentication/persistence passed until deployed MongoDB conn
 - Styling lives only in `src/styles/app.css`; every page renders `src/components/AppChrome.astro` with `active="home" | "builder" | "timer"`.
 - Home: profile header → day stories (`[data-story-day]` drives `#routine-day`) → routine feed rendered by `src/scripts/two-week-routine.ts`.
 - Builder and timer keep every original element ID; only the surrounding design changed.
-- `src/scripts/account.ts` mounts into `[data-account-slot]` and replaces `[data-auth-page]` content when a session exists.
+- `src/scripts/account.ts` mounts into `[data-account-slot]`. Account logic is unchanged from before the redesign: `/api/auth/me`, links or e-mail plus Log out, `location.reload()` after logout.
 - Deleted as dead code: `api/estimate.ts`, `api/food-image.ts`, `api/provider-status.ts`, `lib/nutrition-research.ts`, `styles/global.css`, `scripts/navigation.ts`.
 - Checks run: `npm run check` and `npm run build` both pass; all five pages return HTTP 200 from the dev server. No visual/browser review was done, so treat the look as unverified until someone opens it at 375px and ≥1280px in light and dark.
 - Next: visual review, then dependency/lockfile repair (`npm ci` fails on `ajv` drift), then the standing `MONGODB_URI` production blocker.

@@ -2,6 +2,14 @@
 
 Git commits are the authoritative record of exact source changes.
 
+## 2026-11-27 — Style-only guarantees restored
+
+- Restored `src/pages/api/estimate.ts`, `src/pages/api/food-image.ts`, `src/pages/api/provider-status.ts` and `src/lib/nutrition-research.ts`, which the redesign had deleted. They are unreferenced legacy routes, but deleting them still changed the deployed API surface.
+- `src/scripts/account.ts` no longer redirects to `/signin` after a successful log-out (it reloads the page, as before) and no longer replaces the sign-in/sign-up card for signed-in visitors. Both were behaviour changes introduced by the redesign; account logic now matches `f08623c`.
+- Removed the now-unused `[data-auth-page]` hook from `/signin` and `/signup` and corrected the docs that described it.
+- The interface work itself remains styling and markup only: `src/styles/app.css`, `src/components/AppChrome.astro`, the page templates, and the selectors those templates expose. `src/scripts/workouts.ts`, `src/scripts/timer.ts`, `src/scripts/two-week-routine.ts`, `src/scripts/auth-page.ts`, `src/lib/*` and every API handler are byte-identical to `f08623c`. The one removed script is `src/scripts/navigation.ts`, because the burger drawer it drove no longer exists in the markup — the tab bar replaces that navigation.
+- Verified: `npm run check` (0 errors, 0 warnings, 0 hints), `npm run build` (success), `git diff --stat f08623c -- src/scripts src/lib src/pages/api` shows only the restored files and `account.ts`. No browser click-through performed.
+
 ## 2026-11-27 — Fix: home routine feed rendered empty
 
 - `src/pages/index.astro` had lost `import "../scripts/two-week-routine"` during the redesign. `#routine-content` is populated only by that script, so the home page showed no workouts at all. The hardcoded two-week dumbbell routine, its form cues and the custom-demo controls were never deleted — only the import was missing.

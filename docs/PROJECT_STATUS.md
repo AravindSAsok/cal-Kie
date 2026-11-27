@@ -105,6 +105,6 @@ Sequential ExerciseDB GIF preloading is implemented in `src/scripts/workouts.ts`
 | `npm run check` | 0 errors, 0 warnings, 0 hints |
 | `npm run build` | success, Vercel adapter, 32.5 KB CSS bundle |
 | Dev server pages | `/`, `/workout-builder`, `/timer`, `/signin`, `/signup` all HTTP 200 |
-| Markup contracts | `#routine-content`, `#generator-form`, `#week-grid`, countdown/stopwatch/interval IDs and `[data-auth-page]` all present |
+| Markup contracts | `#routine-content`, `#generator-form`, `#week-grid`, `[data-account-slot]` and the countdown/stopwatch/interval IDs all present |
 | Browser click-through / screenshots | Not performed — visual review still needed at 375px and ≥1280px in both themes |
 | Production DB | Unchanged blocker: `MONGODB_URI` still not configured in Vercel Production |
